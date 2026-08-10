@@ -1,5 +1,6 @@
-D:/Emb_Sys/projects/26rc夏令营1组/电控/lzacantest/Core/Src/main.c:75:6:HAL_TIM_PeriodElapsedCallback	16	static
-D:/Emb_Sys/projects/26rc夏令营1组/电控/lzacantest/Core/Src/main.c:109:5:main	112	static
-D:/Emb_Sys/projects/26rc夏令营1组/电控/lzacantest/Core/Src/main.c:197:6:SystemClock_Config	120	static
-D:/Emb_Sys/projects/26rc夏令营1组/电控/lzacantest/Core/Src/main.c:258:6:MPU_Config	24	static
-D:/Emb_Sys/projects/26rc夏令营1组/电控/lzacantest/Core/Src/main.c:289:6:Error_Handler	4	static,ignoring_inline_asm
+D:/Emb_Sys/projects/26rcteam1/emb_con/lzacantest/Core/Src/main.c:81:6:HAL_TIM_PeriodElapsedCallback	16	static
+D:/Emb_Sys/projects/26rcteam1/emb_con/lzacantest/Core/Src/main.c:94:5:main	104	static
+D:/Emb_Sys/projects/26rcteam1/emb_con/lzacantest/Core/Src/main.c:254:6:SystemClock_Config	120	static
+D:/Emb_Sys/projects/26rcteam1/emb_con/lzacantest/Core/Src/main.c:313:6:PeriphCommonClock_Config	192	static
+D:/Emb_Sys/projects/26rcteam1/emb_con/lzacantest/Core/Src/main.c:341:6:MPU_Config	24	static
+D:/Emb_Sys/projects/26rcteam1/emb_con/lzacantest/Core/Src/main.c:372:6:Error_Handler	4	static,ignoring_inline_asm

@@ -1,4 +1,4 @@
-# Install script for directory: D:/Emb_Sys/projects/26rc夏令营1组/电控/lzacantest/cmake/stm32cubemx
+# Install script for directory: D:/Emb_Sys/projects/26rcteam1/emb_con/lzacantest/cmake/stm32cubemx
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -34,12 +34,12 @@ endif()
 
 # Set path to fallback-tool for dependency-resolution.
 if(NOT DEFINED CMAKE_OBJDUMP)
-  set(CMAKE_OBJDUMP "C:/Users/20468/AppData/Local/stm32cube/bundles/gnu-tools-for-stm32/14.3.1+st.2/bin/arm-none-eabi-objdump.exe")
+  set(CMAKE_OBJDUMP "D:/Emb_Sys/stm32_tools/STM32CubeCLT_1.21.0/GNU-tools-for-STM32/bin/arm-none-eabi-objdump.exe")
 endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
 if(CMAKE_INSTALL_LOCAL_ONLY)
-  file(WRITE "D:/Emb_Sys/projects/26rc夏令营1组/电控/lzacantest/build/Debug/cmake/stm32cubemx/install_local_manifest.txt"
+  file(WRITE "D:/Emb_Sys/projects/26rcteam1/emb_con/lzacantest/build/Debug/cmake/stm32cubemx/install_local_manifest.txt"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
 endif()

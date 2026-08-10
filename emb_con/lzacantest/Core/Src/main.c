@@ -19,14 +19,13 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "fdcan.h"
+#include "tim.h"
 #include "gpio.h"
-#include "stm32h7xx_hal_tim.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
 #include "tim.h"
-#include <stdint.h>
 
 /* USER CODE END Includes */
 
@@ -49,8 +48,8 @@
 
 /* USER CODE BEGIN PV */
 
-uint8_t can_loop_flag = 0;
-
+uint8_t can_loop_flag = 0;  // 当前can标志位
+// 定义CAN报文头和数据
 FDCAN_TxHeaderTypeDef TxHeader1;
 FDCAN_TxHeaderTypeDef TxHeader2;
 FDCAN_RxHeaderTypeDef RxHeader1;
@@ -60,10 +59,17 @@ uint8_t TxData2[8];
 uint8_t RxData1[8];
 uint8_t RxData2[8];
 
+/* FDCAN3 回环测试变量 */
+FDCAN_TxHeaderTypeDef TxHeader3;
+FDCAN_RxHeaderTypeDef RxHeader3;
+uint8_t TxData3[8];
+uint8_t RxData3[8];
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+void PeriphCommonClock_Config(void);
 static void MPU_Config(void);
 /* USER CODE BEGIN PFP */
 
@@ -76,27 +82,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   
   if (htim->Instance == TIM1) {
     can_loop_flag = 1; // 设置标志位，表示可以开始CAN通信
-
-    TxHeader1.Identifier = 0x123; // 设置报文ID为0x123
-    TxHeader1.IdType = FDCAN_STANDARD_ID; // 设置ID类型为标准
-    TxHeader1.TxFrameType = FDCAN_DATA_FRAME; // 设置帧类型为数据帧
-    TxHeader1.DataLength = FDCAN_DLC_BYTES_8; // 设置数据长度为8字节
-    TxHeader1.ErrorStateIndicator = FDCAN_ESI_ACTIVE; // 设置错误状态指示器为活动
-    TxHeader1.BitRateSwitch = FDCAN_BRS_OFF; // 设置比特率切换为关闭
-    TxHeader1.FDFormat = FDCAN_CLASSIC_CAN; // 设置FD格式为经典CAN
-    TxHeader1.TxEventFifoControl = FDCAN_NO_TX_EVENTS; // 设置TX事件FIFO控制为无TX事件
-    TxHeader1.MessageMarker = 0; // 设置消息标记为0
-    TxData1[0] = 0x01; // 设置数据字节0为0x01
-    HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader1, TxData1); // 将报文添加到发送队列
-
-    RxHeader2.Identifier = 0x123; // 设置报文ID为0x123
-    RxHeader2.IdType = FDCAN_STANDARD_ID; // 设置ID类型为标准
-    RxHeader2.RxFrameType = FDCAN_DATA_FRAME; // 设置帧类型为数据帧
-    RxHeader2.DataLength = FDCAN_DLC_BYTES_8; // 设置数据长度为8字节
-    RxHeader2.ErrorStateIndicator = FDCAN_ESI_ACTIVE; // 设置错误状态指示器为活动
-    RxHeader2.BitRateSwitch = FDCAN_BRS_OFF; // 设置比特率切换为关闭
-    RxHeader2.FDFormat = FDCAN_CLASSIC_CAN; // 设置FD格式为经典CAN
-
   }
 }
 
@@ -128,6 +113,9 @@ int main(void)
   /* Configure the system clock */
   SystemClock_Config();
 
+  /* Configure the peripherals common clocks */
+  PeriphCommonClock_Config();
+
   /* USER CODE BEGIN SysInit */
 
   /* USER CODE END SysInit */
@@ -135,7 +123,9 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_FDCAN1_Init();
+  MX_TIM1_Init();
   MX_FDCAN2_Init();
+  MX_FDCAN3_Init();
   /* USER CODE BEGIN 2 */
 
   // 开启定时器中断
@@ -170,18 +160,85 @@ int main(void)
     Error_Handler();
   }
 
+  // 开启CAN3
+  HAL_FDCAN_Start(&hfdcan3);
+  // 配置CAN3滤波器（回环自测，接受所有报文）
+  FDCAN_FilterTypeDef sFilterConfig3;
+  sFilterConfig3.IdType = FDCAN_STANDARD_ID;
+  sFilterConfig3.FilterIndex = 0;
+  sFilterConfig3.FilterType = FDCAN_FILTER_MASK;
+  sFilterConfig3.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
+  sFilterConfig3.FilterID1 = 0x000;
+  sFilterConfig3.FilterID2 = 0x000;
+  if (HAL_FDCAN_ConfigFilter(&hfdcan3, &sFilterConfig3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  // CAN3 发送报文头初始化（回环自测）
+  TxHeader3.Identifier = 0x321;
+  TxHeader3.IdType = FDCAN_STANDARD_ID;
+  TxHeader3.TxFrameType = FDCAN_DATA_FRAME;
+  TxHeader3.DataLength = FDCAN_DLC_BYTES_8;
+  TxHeader3.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+  TxHeader3.BitRateSwitch = FDCAN_BRS_OFF;
+  TxHeader3.FDFormat = FDCAN_CLASSIC_CAN;
+  TxHeader3.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+  TxHeader3.MessageMarker = 0;
+  // 发送CAN报文
+  TxHeader1.Identifier = 0x123; // 设置报文ID为0x123
+  TxHeader1.IdType = FDCAN_STANDARD_ID; // 设置ID类型为标准
+  TxHeader1.TxFrameType = FDCAN_DATA_FRAME; // 设置帧类型为数据帧
+  TxHeader1.DataLength = FDCAN_DLC_BYTES_8; // 设置数据长度为8字节
+  TxHeader1.ErrorStateIndicator = FDCAN_ESI_ACTIVE; // 设置错误状态指示器为活动
+  TxHeader1.BitRateSwitch = FDCAN_BRS_OFF; // 设置比特率切换为关闭
+  TxHeader1.FDFormat = FDCAN_CLASSIC_CAN; // 设置FD格式为经典CAN
+  TxHeader1.TxEventFifoControl = FDCAN_NO_TX_EVENTS; // 设置TX事件FIFO控制为无TX事件
+  TxHeader1.MessageMarker = 0; // 设置消息标记为0
+  TxData1[0] = 0x01; // 设置数据字节0为0x01
+  HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader1, TxData1); // 将报文添加到发送队列
+  // 接收CAN报文
+  RxHeader2.Identifier = 0x123; // 设置报文ID为0x123
+  RxHeader2.IdType = FDCAN_STANDARD_ID; // 设置ID类型为标准
+  RxHeader2.RxFrameType = FDCAN_DATA_FRAME; // 设置帧类型为数据帧
+  RxHeader2.DataLength = FDCAN_DLC_BYTES_8; // 设置数据长度为8字节
+  RxHeader2.ErrorStateIndicator = FDCAN_ESI_ACTIVE; // 设置错误状态指示器为活动
+  RxHeader2.BitRateSwitch = FDCAN_BRS_OFF; // 设置比特率切换为关闭
+  RxHeader2.FDFormat = FDCAN_CLASSIC_CAN; // 设置FD格式为经典CAN
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    static uint32_t tx_count1 = 0; // CAN1发送计数器
+    static uint32_t rx_count2 = 0; // CAN2接收计数器
+    static uint32_t tx_count3 = 0; // CAN3回环发送计数器
+    static uint32_t rx_count3 = 0; // CAN3回环接收计数器
     if (can_loop_flag) {
-      can_loop_flag = 0; // 清除标志位，表示已经处理过CAN通信
+      can_loop_flag = 0; // 清除标志位
 
-      FDCAN_TxHeaderTypeDef TxHeader1;
-      TxHeader1.Identifier = 0x123; // 设置报文ID为0x123
-      TxHeader1.IdType = FDCAN_STANDARD_ID; // 设置ID类型为标准
+      if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader1, TxData1) == HAL_OK) {
+        tx_count1++; // 发送成功，计数器加1
+      }
+
+      /* CAN2 接收检查：收到则翻转 LED */
+      if (HAL_FDCAN_GetRxFifoFillLevel(&hfdcan2, FDCAN_RX_FIFO0) > 0) {
+        if (HAL_FDCAN_GetRxMessage(&hfdcan2, FDCAN_RX_FIFO0, &RxHeader2, RxData2) == HAL_OK) {
+          rx_count2++; // 接收成功，计数器加1
+        }
+      }
+
+      /* FDCAN3 回环测试 */
+      if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan3, &TxHeader3, TxData3) == HAL_OK) {
+        tx_count3++;
+      }
+      if (HAL_FDCAN_GetRxFifoFillLevel(&hfdcan3, FDCAN_RX_FIFO0) > 0) {
+        if (HAL_FDCAN_GetRxMessage(&hfdcan3, FDCAN_RX_FIFO0, &RxHeader3, RxData3) == HAL_OK) {
+          rx_count3++;
+        }
+      }
     }
     /* USER CODE END WHILE */
 
@@ -244,6 +301,32 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB4CLKDivider = RCC_APB4_DIV2;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+}
+
+/**
+  * @brief Peripherals Common Clock Configuration
+  * @retval None
+  */
+void PeriphCommonClock_Config(void)
+{
+  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
+
+  /** Initializes the peripherals clock
+  */
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_FDCAN;
+  PeriphClkInitStruct.PLL2.PLL2M = 32;
+  PeriphClkInitStruct.PLL2.PLL2N = 120;
+  PeriphClkInitStruct.PLL2.PLL2P = 2;
+  PeriphClkInitStruct.PLL2.PLL2Q = 2;
+  PeriphClkInitStruct.PLL2.PLL2R = 2;
+  PeriphClkInitStruct.PLL2.PLL2RGE = RCC_PLL2VCIRANGE_1;
+  PeriphClkInitStruct.PLL2.PLL2VCOSEL = RCC_PLL2VCOWIDE;
+  PeriphClkInitStruct.PLL2.PLL2FRACN = 0;
+  PeriphClkInitStruct.FdcanClockSelection = RCC_FDCANCLKSOURCE_PLL2;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
     Error_Handler();
   }

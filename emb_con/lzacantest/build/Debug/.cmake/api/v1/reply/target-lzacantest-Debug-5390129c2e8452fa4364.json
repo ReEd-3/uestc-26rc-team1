@@ -101,23 +101,23 @@
 			[
 				{
 					"backtrace" : 3,
-					"path" : "D:/Emb_Sys/projects/26rc\u590f\u4ee4\u84251\u7ec4/\u7535\u63a7/lzacantest/cmake/stm32cubemx/../../Core/Inc"
+					"path" : "D:/Emb_Sys/projects/26rcteam1/emb_con/lzacantest/cmake/stm32cubemx/../../Core/Inc"
 				},
 				{
 					"backtrace" : 3,
-					"path" : "D:/Emb_Sys/projects/26rc\u590f\u4ee4\u84251\u7ec4/\u7535\u63a7/lzacantest/cmake/stm32cubemx/../../Drivers/STM32H7xx_HAL_Driver/Inc"
+					"path" : "D:/Emb_Sys/projects/26rcteam1/emb_con/lzacantest/cmake/stm32cubemx/../../Drivers/STM32H7xx_HAL_Driver/Inc"
 				},
 				{
 					"backtrace" : 3,
-					"path" : "D:/Emb_Sys/projects/26rc\u590f\u4ee4\u84251\u7ec4/\u7535\u63a7/lzacantest/cmake/stm32cubemx/../../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy"
+					"path" : "D:/Emb_Sys/projects/26rcteam1/emb_con/lzacantest/cmake/stm32cubemx/../../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy"
 				},
 				{
 					"backtrace" : 3,
-					"path" : "D:/Emb_Sys/projects/26rc\u590f\u4ee4\u84251\u7ec4/\u7535\u63a7/lzacantest/cmake/stm32cubemx/../../Drivers/CMSIS/Device/ST/STM32H7xx/Include"
+					"path" : "D:/Emb_Sys/projects/26rcteam1/emb_con/lzacantest/cmake/stm32cubemx/../../Drivers/CMSIS/Device/ST/STM32H7xx/Include"
 				},
 				{
 					"backtrace" : 3,
-					"path" : "D:/Emb_Sys/projects/26rc\u590f\u4ee4\u84251\u7ec4/\u7535\u63a7/lzacantest/cmake/stm32cubemx/../../Drivers/CMSIS/Include"
+					"path" : "D:/Emb_Sys/projects/26rcteam1/emb_con/lzacantest/cmake/stm32cubemx/../../Drivers/CMSIS/Include"
 				}
 			],
 			"language" : "C",
@@ -171,23 +171,23 @@
 			[
 				{
 					"backtrace" : 3,
-					"path" : "D:/Emb_Sys/projects/26rc\u590f\u4ee4\u84251\u7ec4/\u7535\u63a7/lzacantest/cmake/stm32cubemx/../../Core/Inc"
+					"path" : "D:/Emb_Sys/projects/26rcteam1/emb_con/lzacantest/cmake/stm32cubemx/../../Core/Inc"
 				},
 				{
 					"backtrace" : 3,
-					"path" : "D:/Emb_Sys/projects/26rc\u590f\u4ee4\u84251\u7ec4/\u7535\u63a7/lzacantest/cmake/stm32cubemx/../../Drivers/STM32H7xx_HAL_Driver/Inc"
+					"path" : "D:/Emb_Sys/projects/26rcteam1/emb_con/lzacantest/cmake/stm32cubemx/../../Drivers/STM32H7xx_HAL_Driver/Inc"
 				},
 				{
 					"backtrace" : 3,
-					"path" : "D:/Emb_Sys/projects/26rc\u590f\u4ee4\u84251\u7ec4/\u7535\u63a7/lzacantest/cmake/stm32cubemx/../../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy"
+					"path" : "D:/Emb_Sys/projects/26rcteam1/emb_con/lzacantest/cmake/stm32cubemx/../../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy"
 				},
 				{
 					"backtrace" : 3,
-					"path" : "D:/Emb_Sys/projects/26rc\u590f\u4ee4\u84251\u7ec4/\u7535\u63a7/lzacantest/cmake/stm32cubemx/../../Drivers/CMSIS/Device/ST/STM32H7xx/Include"
+					"path" : "D:/Emb_Sys/projects/26rcteam1/emb_con/lzacantest/cmake/stm32cubemx/../../Drivers/CMSIS/Device/ST/STM32H7xx/Include"
 				},
 				{
 					"backtrace" : 3,
-					"path" : "D:/Emb_Sys/projects/26rc\u590f\u4ee4\u84251\u7ec4/\u7535\u63a7/lzacantest/cmake/stm32cubemx/../../Drivers/CMSIS/Include"
+					"path" : "D:/Emb_Sys/projects/26rcteam1/emb_con/lzacantest/cmake/stm32cubemx/../../Drivers/CMSIS/Include"
 				}
 			],
 			"language" : "ASM",
@@ -214,7 +214,7 @@
 				"role" : "flags"
 			},
 			{
-				"fragment" : "-mcpu=cortex-m7 -mfpu=fpv5-d16 -mfloat-abi=hard  -T \"D:/Emb_Sys/projects/26rc\u590f\u4ee4\u84251\u7ec4/\u7535\u63a7/lzacantest/STM32H723XG_FLASH.ld\" --specs=nano.specs -Wl,-Map=lzacantest.map -Wl,--gc-sections -Wl,--print-memory-usage",
+				"fragment" : "-mcpu=cortex-m7 -mfpu=fpv5-d16 -mfloat-abi=hard  -T \"D:/Emb_Sys/projects/26rcteam1/emb_con/lzacantest/STM32H723XG_FLASH.ld\" --specs=nano.specs -Wl,-Map=lzacantest.map -Wl,--gc-sections -Wl,--print-memory-usage",
 				"role" : "flags"
 			},
 			{

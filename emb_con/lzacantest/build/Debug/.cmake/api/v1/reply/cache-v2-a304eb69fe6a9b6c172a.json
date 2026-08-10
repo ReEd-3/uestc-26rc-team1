@@ -15,7 +15,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "C:/Users/20468/AppData/Local/stm32cube/bundles/gnu-tools-for-stm32/14.3.1+st.2/bin/arm-none-eabi-addr2line.exe"
+			"value" : "D:/Emb_Sys/stm32_tools/STM32CubeCLT_1.21.0/GNU-tools-for-STM32/bin/arm-none-eabi-addr2line.exe"
 		},
 		{
 			"name" : "CMAKE_AR",
@@ -31,7 +31,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "C:/Users/20468/AppData/Local/stm32cube/bundles/gnu-tools-for-stm32/14.3.1+st.2/bin/arm-none-eabi-ar.exe"
+			"value" : "D:/Emb_Sys/stm32_tools/STM32CubeCLT_1.21.0/GNU-tools-for-STM32/bin/arm-none-eabi-ar.exe"
 		},
 		{
 			"name" : "CMAKE_ASM_COMPILER_AR",
@@ -47,7 +47,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "C:/Users/20468/AppData/Local/stm32cube/bundles/gnu-tools-for-stm32/14.3.1+st.2/bin/arm-none-eabi-gcc-ar.exe"
+			"value" : "D:/Emb_Sys/stm32_tools/STM32CubeCLT_1.21.0/GNU-tools-for-STM32/bin/arm-none-eabi-gcc-ar.exe"
 		},
 		{
 			"name" : "CMAKE_ASM_COMPILER_RANLIB",
@@ -63,7 +63,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "C:/Users/20468/AppData/Local/stm32cube/bundles/gnu-tools-for-stm32/14.3.1+st.2/bin/arm-none-eabi-gcc-ranlib.exe"
+			"value" : "D:/Emb_Sys/stm32_tools/STM32CubeCLT_1.21.0/GNU-tools-for-STM32/bin/arm-none-eabi-gcc-ranlib.exe"
 		},
 		{
 			"name" : "CMAKE_ASM_COMPILER_WORKS",
@@ -179,7 +179,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "d:/Emb_Sys/projects/26rc\u590f\u4ee4\u84251\u7ec4/\u7535\u63a7/lzacantest/build/Debug"
+			"value" : "d:/Emb_Sys/projects/26rcteam1/emb_con/lzacantest/build/Debug"
 		},
 		{
 			"name" : "CMAKE_CACHE_MAJOR_VERSION",
@@ -267,7 +267,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "C:/Users/20468/AppData/Local/stm32cube/bundles/gnu-tools-for-stm32/14.3.1+st.2/bin/arm-none-eabi-gcc-ar.exe"
+			"value" : "D:/Emb_Sys/stm32_tools/STM32CubeCLT_1.21.0/GNU-tools-for-STM32/bin/arm-none-eabi-gcc-ar.exe"
 		},
 		{
 			"name" : "CMAKE_CXX_COMPILER_RANLIB",
@@ -283,7 +283,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "C:/Users/20468/AppData/Local/stm32cube/bundles/gnu-tools-for-stm32/14.3.1+st.2/bin/arm-none-eabi-gcc-ranlib.exe"
+			"value" : "D:/Emb_Sys/stm32_tools/STM32CubeCLT_1.21.0/GNU-tools-for-STM32/bin/arm-none-eabi-gcc-ranlib.exe"
 		},
 		{
 			"name" : "CMAKE_CXX_FLAGS",
@@ -379,7 +379,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "C:/Users/20468/AppData/Local/stm32cube/bundles/gnu-tools-for-stm32/14.3.1+st.2/bin/arm-none-eabi-gcc-ar.exe"
+			"value" : "D:/Emb_Sys/stm32_tools/STM32CubeCLT_1.21.0/GNU-tools-for-STM32/bin/arm-none-eabi-gcc-ar.exe"
 		},
 		{
 			"name" : "CMAKE_C_COMPILER_RANLIB",
@@ -395,7 +395,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "C:/Users/20468/AppData/Local/stm32cube/bundles/gnu-tools-for-stm32/14.3.1+st.2/bin/arm-none-eabi-gcc-ranlib.exe"
+			"value" : "D:/Emb_Sys/stm32_tools/STM32CubeCLT_1.21.0/GNU-tools-for-STM32/bin/arm-none-eabi-gcc-ranlib.exe"
 		},
 		{
 			"name" : "CMAKE_C_FLAGS",
@@ -647,7 +647,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "D:/Emb_Sys/projects/26rc\u590f\u4ee4\u84251\u7ec4/\u7535\u63a7/lzacantest/build/Debug/CMakeFiles/pkgRedirects"
+			"value" : "D:/Emb_Sys/projects/26rcteam1/emb_con/lzacantest/build/Debug/CMakeFiles/pkgRedirects"
 		},
 		{
 			"name" : "CMAKE_GENERATOR",
@@ -707,7 +707,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "D:/Emb_Sys/projects/26rc\u590f\u4ee4\u84251\u7ec4/\u7535\u63a7/lzacantest"
+			"value" : "D:/Emb_Sys/projects/26rcteam1/emb_con/lzacantest"
 		},
 		{
 			"name" : "CMAKE_INSTALL_PREFIX",
@@ -747,7 +747,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "C:/Users/20468/AppData/Local/stm32cube/bundles/ninja/1.13.2+st.1/bin/ninja.exe"
+			"value" : "D:/Emb_Sys/stm32_tools/STM32CubeCLT_1.21.0/Ninja/bin/ninja.exe"
 		},
 		{
 			"name" : "CMAKE_MODULE_LINKER_FLAGS",
@@ -843,7 +843,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "C:/Users/20468/AppData/Local/stm32cube/bundles/gnu-tools-for-stm32/14.3.1+st.2/bin/arm-none-eabi-nm.exe"
+			"value" : "D:/Emb_Sys/stm32_tools/STM32CubeCLT_1.21.0/GNU-tools-for-STM32/bin/arm-none-eabi-nm.exe"
 		},
 		{
 			"name" : "CMAKE_NUMBER_OF_MAKEFILES",
@@ -871,7 +871,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "C:/Users/20468/AppData/Local/stm32cube/bundles/gnu-tools-for-stm32/14.3.1+st.2/bin/arm-none-eabi-objdump.exe"
+			"value" : "D:/Emb_Sys/stm32_tools/STM32CubeCLT_1.21.0/GNU-tools-for-STM32/bin/arm-none-eabi-objdump.exe"
 		},
 		{
 			"name" : "CMAKE_PLATFORM_INFO_INITIALIZED",
@@ -959,7 +959,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "C:/Users/20468/AppData/Local/stm32cube/bundles/gnu-tools-for-stm32/14.3.1+st.2/bin/arm-none-eabi-ranlib.exe"
+			"value" : "D:/Emb_Sys/stm32_tools/STM32CubeCLT_1.21.0/GNU-tools-for-STM32/bin/arm-none-eabi-ranlib.exe"
 		},
 		{
 			"name" : "CMAKE_READELF",
@@ -975,7 +975,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "C:/Users/20468/AppData/Local/stm32cube/bundles/gnu-tools-for-stm32/14.3.1+st.2/bin/arm-none-eabi-readelf.exe"
+			"value" : "D:/Emb_Sys/stm32_tools/STM32CubeCLT_1.21.0/GNU-tools-for-STM32/bin/arm-none-eabi-readelf.exe"
 		},
 		{
 			"name" : "CMAKE_ROOT",
@@ -1195,7 +1195,7 @@
 				}
 			],
 			"type" : "FILEPATH",
-			"value" : "C:/Users/20468/AppData/Local/stm32cube/bundles/gnu-tools-for-stm32/14.3.1+st.2/bin/arm-none-eabi-strip.exe"
+			"value" : "D:/Emb_Sys/stm32_tools/STM32CubeCLT_1.21.0/GNU-tools-for-STM32/bin/arm-none-eabi-strip.exe"
 		},
 		{
 			"name" : "CMAKE_TAPI",
@@ -1223,7 +1223,7 @@
 				}
 			],
 			"type" : "UNINITIALIZED",
-			"value" : "D:/Emb_Sys/projects/26rc\u590f\u4ee4\u84251\u7ec4/\u7535\u63a7/lzacantest/cmake/gcc-arm-none-eabi.cmake"
+			"value" : "D:/Emb_Sys/projects/26rcteam1/emb_con/lzacantest/cmake/gcc-arm-none-eabi.cmake"
 		},
 		{
 			"name" : "CMAKE_VERBOSE_MAKEFILE",
@@ -1251,7 +1251,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "D:/Emb_Sys/projects/26rc\u590f\u4ee4\u84251\u7ec4/\u7535\u63a7/lzacantest/build/Debug"
+			"value" : "D:/Emb_Sys/projects/26rcteam1/emb_con/lzacantest/build/Debug"
 		},
 		{
 			"name" : "lzacantest_IS_TOP_LEVEL",
@@ -1275,7 +1275,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "D:/Emb_Sys/projects/26rc\u590f\u4ee4\u84251\u7ec4/\u7535\u63a7/lzacantest"
+			"value" : "D:/Emb_Sys/projects/26rcteam1/emb_con/lzacantest"
 		}
 	],
 	"kind" : "cache",
