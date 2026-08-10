@@ -1,0 +1,9 @@
+{
+    "cmake.cmakePath": "cube-cmake",
+    "cmake.preferredGenerators": [
+        "Ninja"
+    ],
+    "clangd.arguments": [
+        "--compile-commands-dir=build/Debug"
+    ]
+}

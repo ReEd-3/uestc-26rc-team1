@@ -1,0 +1,6 @@
+D:/Emb_Sys/projects/26rc夏令营1组/电控/lzacantest/build/Debug/CMakeFiles/lzacantest.dir
+D:/Emb_Sys/projects/26rc夏令营1组/电控/lzacantest/build/Debug/CMakeFiles/edit_cache.dir
+D:/Emb_Sys/projects/26rc夏令营1组/电控/lzacantest/build/Debug/CMakeFiles/rebuild_cache.dir
+D:/Emb_Sys/projects/26rc夏令营1组/电控/lzacantest/build/Debug/cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir
+D:/Emb_Sys/projects/26rc夏令营1组/电控/lzacantest/build/Debug/cmake/stm32cubemx/CMakeFiles/edit_cache.dir
+D:/Emb_Sys/projects/26rc夏令营1组/电控/lzacantest/build/Debug/cmake/stm32cubemx/CMakeFiles/rebuild_cache.dir
