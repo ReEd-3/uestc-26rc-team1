@@ -1,0 +1,8 @@
+{
+	"InstallScripts" : 
+	[
+		"D:/Emb_Sys/projects/can_test/build/Debug/cmake_install.cmake",
+		"D:/Emb_Sys/projects/can_test/build/Debug/cmake/stm32cubemx/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
