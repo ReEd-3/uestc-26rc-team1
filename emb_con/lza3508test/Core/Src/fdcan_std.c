@@ -2,12 +2,6 @@
 #include "stm32h7xx_hal.h"
 #include "stm32h7xx_hal_fdcan.h"
 
-/**
-  * @brief  配置默认滤波器：掩码模式，接受所有标准ID报文，存入RXFIFO0
-  * @param  hfdcan  FDCAN句柄指针（&hfdcan1 / &hfdcan2 / &hfdcan3）
-  * @retval HAL_OK     滤波器配置成功
-  *         HAL_ERROR  滤波器槽位未分配（Init.StdFiltersNbr == 0），或HAL配置失败
-  */
 HAL_StatusTypeDef HAL_FDCAN_StdDefault_ConfigFilter(FDCAN_HandleTypeDef *hfdcan) {
     /* 滤波器槽位没分配，直接报错 */
     if (hfdcan->Init.StdFiltersNbr == 0) {
@@ -99,6 +93,3 @@ HAL_StatusTypeDef HAL_FDCAN_Std_ReceiveMessage(FDCAN_RxHeaderTypeDef *header, FD
         return HAL_ERROR; // 没有消息可接收
     }
 }
-
-
-

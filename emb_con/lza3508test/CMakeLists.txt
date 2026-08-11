@@ -46,6 +46,8 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
     Core/Src/fdcan_std.c
+    Core/Src/m3508_driver.c
+    Core/Inc/pid.h
 )
 
 # Add include paths
