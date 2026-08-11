@@ -77,7 +77,7 @@ HAL_StatusTypeDef HAL_FDCAN_StdDefault_RxHeaderInit(FDCAN_RxHeaderTypeDef *heade
   *         HAL_ERROR  TXFIFO已满或无可用槽位
   * @note   内部直接调用 HAL_FDCAN_AddMessageToTxFifoQ
   */
-HAL_StatusTypeDef HAL_FDCAN_Std_SendMessage(FDCAN_RxHeaderTypeDef *header, FDCAN_HandleTypeDef *hfdcan, uint8_t *data) {
+HAL_StatusTypeDef HAL_FDCAN_Std_SendMessage(FDCAN_TxHeaderTypeDef *header, FDCAN_HandleTypeDef *hfdcan, uint8_t *data) {
     return HAL_FDCAN_AddMessageToTxFifoQ(hfdcan, (FDCAN_TxHeaderTypeDef *)header, data);
 }
 
