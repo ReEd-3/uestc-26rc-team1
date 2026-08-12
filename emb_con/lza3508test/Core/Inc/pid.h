@@ -10,9 +10,11 @@ typedef struct {
     double dt;  // 时间间隔
     double integral;       // 积分值
     double last_error;     // 上一次误差值
+    double target;
+    double current;
 } PID_t;
 
 void PID_Init(PID_t *pid, double Kp, double Ki, double Kd, double dt);
-double PID_Compute(PID_t *pid, double setpoint, double measured_value, double dt);
+double PID_Compute(PID_t *pid);
 
 #endif

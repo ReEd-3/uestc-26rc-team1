@@ -25,7 +25,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
-#include "fdcan_std.h"  // 引入自定义的FDCAN标准帧处理头文件
+#include "m3508_driver.h"
 
 /* USER CODE END Includes */
 
@@ -48,11 +48,9 @@
 
 /* USER CODE BEGIN PV */
 
-volatile int16_t motor_current = 0; // 电机电流值
-FDCAN_TxHeaderTypeDef TxHeader; // 发送报文头
-FDCAN_RxHeaderTypeDef RxHeader; // 接收报文头
-uint8_t data[8] = {0}; // 创建一个8字节的数据数组
+double target_rpm[8] = {0}; // 创建一个数据数组
 uint8_t tim_flag = 0; // 定时器标志位
+M3508_CAN_All m3508_can_1; 
 
 /* USER CODE END PV */
 
@@ -111,13 +109,12 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   HAL_TIM_Base_Start_IT(&htim1); // 启动定时器1中断
-  HAL_FDCAN_StdDefault_ConfigFilter(&hfdcan1); // 初始化滤波器
-  HAL_FDCAN_StdDefault_TxHeaderInit(&TxHeader, 0x1FF, 8, &hfdcan1); // 初始化发送报文头
-  HAL_FDCAN_StdDefault_RxHeaderInit(&RxHeader, 0x206, 8, &hfdcan1); // 初始化接收报文头
+
+  M3508_CAN_Init(&m3508_can_1, (1 << 5), &hfdcan1);
+  M3508_PID_Init(&m3508_can_1, 10, 0.3, 0.05, 0.001);
+  target_rpm[5] = 500.0f;
+  M3508_SetSpeedTarget(&m3508_can_1, target_rpm);
   HAL_FDCAN_Start(&hfdcan1); // 启动FDCAN模块
-  motor_current = 800; // 设置电机电流值为800
-  data[2] = (motor_current >> 8) & 0xFF; // 高字节
-  data[3] = motor_current & 0xFF;        // 低字节
 
   /* USER CODE END 2 */
 
@@ -127,8 +124,7 @@ int main(void)
   {
     if (tim_flag) { // 检查定时器标志位
         tim_flag = 0; // 清除标志位
-        HAL_FDCAN_Std_ReceiveMessage(&RxHeader, &hfdcan1, 0, data); // 接收FDCAN报文
-        HAL_FDCAN_Std_SendMessage(&TxHeader, &hfdcan1, data); // 发送FDCAN报文
+        M3508_PID_Update(&m3508_can_1);
     }
     /* USER CODE END WHILE */
 
