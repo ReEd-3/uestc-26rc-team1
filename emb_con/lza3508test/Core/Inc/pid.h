@@ -16,5 +16,6 @@ typedef struct {
 
 void PID_Init(PID_t *pid, double Kp, double Ki, double Kd, double dt);
 double PID_Compute(PID_t *pid);
+double PID_Loop_Compute(PID_t *pid, double high_lim, double low_lim);
 
 #endif

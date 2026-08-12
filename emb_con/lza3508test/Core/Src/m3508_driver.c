@@ -260,8 +260,8 @@ void M3508_PositionPID_Update(M3508_CAN_All *m3508_can) {
         M3508_HandleTypeDef *motor = &(m3508_can->motors[i]);
 
         /* 将反馈转速写入 PID，计算控制量 */
-        motor->position_pid.current = motor->speed;
-        double output = PID_Compute(&motor->speed_pid);
+        motor->position_pid.current = motor->position;
+        double output = PID_Loop_Compute(&motor->position_pid, 0, M3508_ENCODER_RESOLUTION);
 
         /* 限幅到电流范围 [-16384, 16384] */
         if (output > M3508_CURRENT_MAX)  output = M3508_CURRENT_MAX;

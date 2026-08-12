@@ -111,9 +111,9 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim1); // 启动定时器1中断
 
   M3508_CAN_Init(&m3508_can_1, (1 << 5), &hfdcan1);
-  M3508_SpeedPID_Init(&m3508_can_1, 10, 0.3, 0.05, 0.001);
-  target_rpm[5] = 500.0f;
-  M3508_SetSpeedTarget(&m3508_can_1, target_rpm);
+  M3508_PositionPID_Init(&m3508_can_1, 13, 0.0 , 0.05, 0.001);
+  target_rpm[5] = 0;
+  M3508_SetPositionTarget(&m3508_can_1, target_rpm);
   HAL_FDCAN_Start(&hfdcan1); // 启动FDCAN模块
 
   /* USER CODE END 2 */
@@ -123,8 +123,13 @@ int main(void)
   while (1)
   {
     if (tim_flag) { // 检查定时器标志位
-        tim_flag = 0; // 清除标志位
-        M3508_SpeedPID_Update(&m3508_can_1);
+      tim_flag = 0; // 清除标志位
+
+      if (target_rpm[5] > M3508_ENCODER_RESOLUTION) {
+        target_rpm[5] -= M3508_ENCODER_RESOLUTION;
+      }
+      M3508_SetPositionTarget(&m3508_can_1, target_rpm);
+      M3508_PositionPID_Update(&m3508_can_1);
     }
     /* USER CODE END WHILE */
 
