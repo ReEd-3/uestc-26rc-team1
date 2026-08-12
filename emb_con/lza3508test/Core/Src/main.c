@@ -1,4 +1,4 @@
-/* USER CODE BEGIN Header */
+ /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
   * @file           : main.c
@@ -49,7 +49,7 @@
 /* USER CODE BEGIN PV */
 
 double target_rpm[8] = {0}; // 创建一个数据数组
-uint8_t tim_flag = 0; // 定时器标志位
+volatile uint8_t tim_flag = 0; // 定时器标志位
 M3508_CAN_All m3508_can_1; 
 
 /* USER CODE END PV */
@@ -111,7 +111,7 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim1); // 启动定时器1中断
 
   M3508_CAN_Init(&m3508_can_1, (1 << 5), &hfdcan1);
-  M3508_PID_Init(&m3508_can_1, 10, 0.3, 0.05, 0.001);
+  M3508_SpeedPID_Init(&m3508_can_1, 10, 0.3, 0.05, 0.001);
   target_rpm[5] = 500.0f;
   M3508_SetSpeedTarget(&m3508_can_1, target_rpm);
   HAL_FDCAN_Start(&hfdcan1); // 启动FDCAN模块
@@ -124,7 +124,7 @@ int main(void)
   {
     if (tim_flag) { // 检查定时器标志位
         tim_flag = 0; // 清除标志位
-        M3508_PID_Update(&m3508_can_1);
+        M3508_SpeedPID_Update(&m3508_can_1);
     }
     /* USER CODE END WHILE */
 

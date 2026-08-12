@@ -74,6 +74,7 @@ HAL_StatusTypeDef M3508_CAN_Init(M3508_CAN_All *m3508_can, uint8_t motor_ids, FD
     return HAL_OK; // 初始化成功
 }
 
+// 设置一整个组的电机电流
 HAL_StatusTypeDef M3508_SetCurrent(M3508_CAN_All *m3508_can, M3508_Motor_Group group_id, int16_t *current) {
 
     uint8_t data[8] = {0}; // 创建一个8字节的数据数组
@@ -164,21 +165,20 @@ void M3508_SetSpeedTarget(M3508_CAN_All *m3508_can, double *target_rpm) {
     }
 }
 
-void M3508_PID_MotorInit(M3508_HandleTypeDef *motor, double Kp, double Ki, double Kd, double dt) {
+void M3508_SpeedPID_MotorInit(M3508_HandleTypeDef *motor, double Kp, double Ki, double Kd, double dt) {
     PID_Init(&motor->speed_pid, Kp, Ki, Kd, dt);
 }
 
-void M3508_PID_Init(M3508_CAN_All *m3508_can, double Kp, double Ki, double Kd, double dt) {
+void M3508_SpeedPID_Init(M3508_CAN_All *m3508_can, double Kp, double Ki, double Kd, double dt) {
     for(int i = 0; i < 8; i++) {
         if (m3508_can->motors[i].status == M3508_OFF) {
             continue;
         }
-        M3508_PID_MotorInit(&m3508_can->motors[i], Kp, Ki, Kd, dt);  // dt单位s
+        M3508_SpeedPID_MotorInit(&m3508_can->motors[i], Kp, Ki, Kd, dt);  // dt单位s
     }
-    
 }
 
-void M3508_PID_Update(M3508_CAN_All *m3508_can) {
+void M3508_SpeedPID_Update(M3508_CAN_All *m3508_can) {
 
     /* 读取所有电机反馈 */
     M3508_ReadStatus(m3508_can);
@@ -197,6 +197,70 @@ void M3508_PID_Update(M3508_CAN_All *m3508_can) {
 
         /* 将反馈转速写入 PID，计算控制量 */
         motor->speed_pid.current = motor->speed;
+        double output = PID_Compute(&motor->speed_pid);
+
+        /* 限幅到电流范围 [-16384, 16384] */
+        if (output > M3508_CURRENT_MAX)  output = M3508_CURRENT_MAX;
+        if (output < M3508_CURRENT_MIN)  output = M3508_CURRENT_MIN;
+
+        /* 分入 LOW 组 (0~3) 或 HIGH 组 (4~7) */
+        if (i < 4) {
+            cur_low[i] = (int16_t)output;
+        } else {
+            cur_high[i - 4] = (int16_t)output;
+        }
+    }
+
+    /* CAN 发送：一个 ID 控制一组 4 个电机 */
+    M3508_SetCurrent(m3508_can, M3508_GROUP_LOW,  cur_low);
+    M3508_SetCurrent(m3508_can, M3508_GROUP_HIGH, cur_high);
+}
+
+// ============================================================
+//  位置环 PID 控制
+// ============================================================
+
+void M3508_SetPositionTarget(M3508_CAN_All *m3508_can, double *target_rpm) {
+    for(int i = 0; i < 8; i++) {
+        if (m3508_can->motors[i].status == M3508_OFF) {
+            continue;
+        }
+        m3508_can->motors[i].position_pid.target = target_rpm[i];
+    }
+}
+
+void M3508_PositionPID_MotorInit(M3508_HandleTypeDef *motor, double Kp, double Ki, double Kd, double dt) {
+    PID_Init(&motor->position_pid, Kp, Ki, Kd, dt);
+}
+
+void M3508_PositionPID_Init(M3508_CAN_All *m3508_can, double Kp, double Ki, double Kd, double dt) {
+    for(int i = 0; i < 8; i++) {
+        if (m3508_can->motors[i].status == M3508_OFF) {
+            continue;
+        }
+        M3508_PositionPID_MotorInit(&m3508_can->motors[i], Kp, Ki, Kd, dt);  // dt单位s
+    }
+}
+
+void M3508_PositionPID_Update(M3508_CAN_All *m3508_can) {
+
+    /* 读取所有电机反馈 */
+    M3508_ReadStatus(m3508_can);
+
+    int16_t cur_low[4]  = {0};
+    int16_t cur_high[4] = {0};
+
+    /* 对每个电机进行 PID 计算 */
+    for (int i = 0; i < 8; i++) {
+
+        if (m3508_can->motors[i].status != M3508_ON) {
+            continue;  // 未启用的电机电流保持 0
+        }
+
+        M3508_HandleTypeDef *motor = &(m3508_can->motors[i]);
+
+        /* 将反馈转速写入 PID，计算控制量 */
+        motor->position_pid.current = motor->speed;
         double output = PID_Compute(&motor->speed_pid);
 
         /* 限幅到电流范围 [-16384, 16384] */
