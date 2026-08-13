@@ -31,6 +31,7 @@ typedef struct {
     uint16_t position;  // 电机位置值
     int8_t temperature;  // 电机温度值
     PID_t speed_pid;  // 速度环 
+    PID_t position_pid;  // 位置环
 } M3508_HandleTypeDef;
 
 typedef struct {
@@ -45,8 +46,14 @@ HAL_StatusTypeDef M3508_ReadStatus(M3508_CAN_All *m3508_can);
 
 // === 速度环 PID 控制 ===
 void M3508_SetSpeedTarget(M3508_CAN_All *m3508_can, double *target_rpm);
-void M3508_PID_MotorInit(M3508_HandleTypeDef *motor, double Kp, double Ki, double Kd, double dt);
-void M3508_PID_Init(M3508_CAN_All *m3508_can, double Kp, double Ki, double Kd, double dt);
-void M3508_PID_Update(M3508_CAN_All *m3508_can);  // 每个控制周期调用：读取→PID计算→CAN发送
+void M3508_SpeedPID_MotorInit(M3508_HandleTypeDef *motor, double Kp, double Ki, double Kd, double dt);
+void M3508_SpeedPID_Init(M3508_CAN_All *m3508_can, double Kp, double Ki, double Kd, double dt);
+void M3508_SpeedPID_Update(M3508_CAN_All *m3508_can);  // 每个控制周期调用：读取→PID计算→CAN发送
+
+// === 位置环 PID 控制 ===
+void M3508_SetPositionTarget(M3508_CAN_All *m3508_can, double *target_rpm);
+void M3508_PositionPID_MotorInit(M3508_HandleTypeDef *motor, double Kp, double Ki, double Kd, double dt);
+void M3508_PositionPID_Init(M3508_CAN_All *m3508_can, double Kp, double Ki, double Kd, double dt);
+void M3508_PositionPID_Update(M3508_CAN_All *m3508_can);  // 每个控制周期调用：读取→PID计算→CAN发送
 
 #endif
