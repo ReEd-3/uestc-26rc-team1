@@ -24,7 +24,7 @@ HAL_StatusTypeDef M3508_Init(M3508_HandleTypeDef *motor, FDCAN_HandleTypeDef *hf
     return HAL_OK; // 初始化成功
 }
 
-// 对控制电机的总线进行初始化
+// 对控制电机的总线进行初始化（初始化后均为默认配置）
 HAL_StatusTypeDef M3508_CAN_Init(M3508_CAN_All *m3508_can, uint8_t motor_ids, FDCAN_HandleTypeDef *hfdcan) {
     // 检测缓冲和滤波器数量
     if (hfdcan->Init.StdFiltersNbr < 8 ||
@@ -55,7 +55,7 @@ HAL_StatusTypeDef M3508_CAN_Init(M3508_CAN_All *m3508_can, uint8_t motor_ids, FD
 
     for (int i = 0; i < 8; i++) {
 
-        // 初始化每个电机，主要是id, 默认速度环
+        // 初始化每个电机，主要是id, 默认速度环, 默认积分不限幅
         if (M3508_Init(&m3508_can->motors[i], hfdcan, i + 1, M3508_SPEEDPID_MODE, DBL_MAX) != HAL_OK) {
             return HAL_ERROR; // 初始化失败
         }
@@ -78,38 +78,53 @@ HAL_StatusTypeDef M3508_CAN_Init(M3508_CAN_All *m3508_can, uint8_t motor_ids, FD
     return HAL_OK; // 初始化成功
 }
 
-// 设置一整个组的电机电流
-HAL_StatusTypeDef M3508_SetCurrent(M3508_CAN_All *m3508_can, M3508_Motor_Group group_id, int16_t *current) {
+// 设置一整个CAN的电机电流
+HAL_StatusTypeDef M3508_SetCurrent(M3508_CAN_All *m3508_can) {
 
     uint8_t data[8] = {0}; // 创建一个8字节的数据数组
     FDCAN_TxHeaderTypeDef CAN_TxHeader; // 创建发送报文头
 
+    // 低ID电机电流设置
     for (int i = 0; i < 4; i++){
-        if ((group_id == M3508_GROUP_LOW && m3508_can->motors[i].status == M3508_OFF)
-        || (group_id == M3508_GROUP_HIGH && m3508_can->motors[i + 4].status == M3508_OFF)) {
+        if (m3508_can->motors[i].status == M3508_OFF) {
             continue;
         }
-        if (current[i] < M3508_CURRENT_MIN) {
-        current[i] = M3508_CURRENT_MIN; // 限制反向最大电流值
+        if (m3508_can->cur_low[i] < M3508_CURRENT_MIN) {
+            m3508_can->cur_low[i] = M3508_CURRENT_MIN; // 限制反向最大电流值
         } 
-        else if (current[i] > M3508_CURRENT_MAX) {
-            current[i] = M3508_CURRENT_MAX; // 限制最大电流值
+        else if (m3508_can->cur_low[i] > M3508_CURRENT_MAX) {
+            m3508_can->cur_low[i] = M3508_CURRENT_MAX; // 限制最大电流值
         }
-        data[2 * i] = (current[i] >> 8) & 0xFF;  // 高字节
-        data[2 * i + 1] = current[i] & 0xFF;
+        data[2 * i] = (m3508_can->cur_low[i] >> 8) & 0xFF;  // 高字节
+        data[2 * i + 1] = m3508_can->cur_low[i] & 0xFF;  // 低字节
     }
 
-    if (group_id == M3508_GROUP_LOW) {
-        HAL_FDCAN_StdDefault_TxHeaderInit(&CAN_TxHeader, M3508_CONTROL_ID_LOW, 8, m3508_can->hfdcan); // 初始化发送报文头
-        return (HAL_FDCAN_Std_SendMessage(&CAN_TxHeader, m3508_can->hfdcan, data)); // 发送FDCAN报文
-    }
-    else if (group_id == M3508_GROUP_HIGH) {
-        HAL_FDCAN_StdDefault_TxHeaderInit(&CAN_TxHeader, M3508_CONTROL_ID_HIGH, 8, m3508_can->hfdcan); // 初始化发送报文头
-        return (HAL_FDCAN_Std_SendMessage(&CAN_TxHeader, m3508_can->hfdcan, data)); // 发送FDCAN报文
-    }
-    else {
+    HAL_FDCAN_StdDefault_TxHeaderInit(&CAN_TxHeader, M3508_CONTROL_ID_LOW, 8, m3508_can->hfdcan); // 初始化发送报文头
+    if (HAL_FDCAN_Std_SendMessage(&CAN_TxHeader, m3508_can->hfdcan, data) != HAL_OK) {
         return HAL_ERROR;
+    }; // 发送FDCAN报文
+
+    // 高ID电机电流设置
+    for (int i = 0; i < 4; i++){
+        if (m3508_can->motors[i + 4].status == M3508_OFF) {
+            continue;
+        }
+        if (m3508_can->cur_high[i] < M3508_CURRENT_MIN) {
+            m3508_can->cur_high[i] = M3508_CURRENT_MIN; // 限制反向最大电流值
+        } 
+        else if (m3508_can->cur_high[i] > M3508_CURRENT_MAX) {
+            m3508_can->cur_high[i] = M3508_CURRENT_MAX; // 限制最大电流值
+        }
+        data[2 * i] = (m3508_can->cur_high[i] >> 8) & 0xFF;  // 高字节
+        data[2 * i + 1] = m3508_can->cur_high[i] & 0xFF;  // 低字节
     }
+
+    HAL_FDCAN_StdDefault_TxHeaderInit(&CAN_TxHeader, M3508_CONTROL_ID_HIGH, 8, m3508_can->hfdcan); // 初始化发送报文头
+    if (HAL_FDCAN_Std_SendMessage(&CAN_TxHeader, m3508_can->hfdcan, data) != HAL_OK) {
+        return HAL_ERROR; 
+    } // 发送FDCAN报文
+
+    return HAL_OK;
 }
 
 // 读取总线上所有电机的状态
@@ -119,14 +134,14 @@ HAL_StatusTypeDef M3508_ReadStatus(M3508_CAN_All *m3508_can)
 
     for (uint8_t i = 0; i < 8; i++)
     {
-        /* 跳过未使能的电机 */
+        // 跳过未使能的电机
         if (m3508_can->motors[i].status != M3508_ON) {
             continue;
         }
 
         uint8_t buf_idx = i;  // can_id=1 → RxBuffer[0], can_id=2 → RxBuffer[1], ...
 
-        /* 检查该电机专用缓冲区是否有新帧（硬件保证是该 ID 的帧） */
+        // 检查该电机专用缓冲区是否有新帧（硬件保证是该 ID 的帧）
         if (HAL_FDCAN_IsRxBufferMessageAvailable(m3508_can->hfdcan, buf_idx) == 0) {
             continue; // 没有新帧，跳过
         }
@@ -160,6 +175,7 @@ HAL_StatusTypeDef M3508_ReadStatus(M3508_CAN_All *m3508_can)
 //  速度环 PID 控制
 // ============================================================
 
+// 给总线上所有电机设置速度
 void M3508_SetSpeedTarget(M3508_CAN_All *m3508_can, double *target_rpm) {
     for(int i = 0; i < 8; i++) {
         if (m3508_can->motors[i].status == M3508_OFF) {
@@ -169,10 +185,12 @@ void M3508_SetSpeedTarget(M3508_CAN_All *m3508_can, double *target_rpm) {
     }
 }
 
+// 给单个电机初始化速度环参数
 void M3508_SpeedPID_MotorInit(M3508_HandleTypeDef *motor, double Kp, double Ki, double Kd, double dt) {
     PID_Init(&motor->speed_pid, Kp, Ki, Kd, dt);
 }
 
+// 给总线所有电机初始化速度环参数
 void M3508_SpeedPID_Init(M3508_CAN_All *m3508_can, double Kp, double Ki, double Kd, double dt) {
     for(int i = 0; i < 8; i++) {
         if (m3508_can->motors[i].status == M3508_OFF) {
@@ -187,6 +205,9 @@ void M3508_SpeedPID_Init(M3508_CAN_All *m3508_can, double Kp, double Ki, double 
 //  位置环 PID 控制
 // ============================================================
 
+// 控制同速度环PID
+
+// 给总线上所有电机设置位置
 void M3508_SetPositionTarget(M3508_CAN_All *m3508_can, double *target_rpm) {
     for(int i = 0; i < 8; i++) {
         if (m3508_can->motors[i].status == M3508_OFF) {
@@ -196,10 +217,12 @@ void M3508_SetPositionTarget(M3508_CAN_All *m3508_can, double *target_rpm) {
     }
 }
 
+// 给单个电机初始化位置环参数
 void M3508_PositionPID_MotorInit(M3508_HandleTypeDef *motor, double Kp, double Ki, double Kd, double dt) {
     PID_Init(&motor->position_pid, Kp, Ki, Kd, dt);
 }
 
+// 给总线所有电机初始化位置环参数
 void M3508_PositionPID_Init(M3508_CAN_All *m3508_can, double Kp, double Ki, double Kd, double dt) {
     for(int i = 0; i < 8; i++) {
         if (m3508_can->motors[i].status == M3508_OFF) {
@@ -214,13 +237,11 @@ void M3508_PositionPID_Init(M3508_CAN_All *m3508_can, double Kp, double Ki, doub
 //  通用 PID 更新
 // ============================================================
 
+// 对总线上所有电机进行PID更新
 void M3508_PID_Update(M3508_CAN_All *m3508_can) {
 
     /* 读取所有电机反馈 */
     M3508_ReadStatus(m3508_can);
-
-    int16_t cur_low[4]  = {0};
-    int16_t cur_high[4] = {0};
 
     /* 对每个电机按 PID 模式进行 PID 计算 */
     for (int i = 0; i < 8; i++) {
@@ -262,21 +283,28 @@ void M3508_PID_Update(M3508_CAN_All *m3508_can) {
 
         /* 分入 LOW 组 (0~3) 或 HIGH 组 (4~7) */
         if (i < 4) {
-            cur_low[i] = (int16_t)output;
+            m3508_can->cur_low[i] = (int16_t)output;
         } else {
-            cur_high[i - 4] = (int16_t)output;
+            m3508_can->cur_high[i - 4] = (int16_t)output;
         }
     }
 
     /* CAN 发送：一个 ID 控制一组 4 个电机 */
-    M3508_SetCurrent(m3508_can, M3508_GROUP_LOW,  cur_low);
-    M3508_SetCurrent(m3508_can, M3508_GROUP_HIGH, cur_high);
+    // M3508_SetCurrent(m3508_can, M3508_GROUP_LOW,  cur_low);
+    // M3508_SetCurrent(m3508_can, M3508_GROUP_HIGH, cur_high);
+
+}
+
+// 发送当前总线所有缓存的电流值
+void M3508_CAN_CurrentUpdate(M3508_CAN_All *m3508_can) {
+    M3508_SetCurrent(m3508_can);
 }
 
 // ============================================================
 //  PID 模式切换,以及参数更新
 // ============================================================
 
+// 有三种模式，速度环模式，位置环模式，串级PID（位置环在外，速度环在内）
 void M3508_PIDMode_Switch(M3508_HandleTypeDef *motor, M3508_PID_Mode mode) {
 
     if (motor->pid_mode == mode || motor->status == M3508_OFF) {
@@ -294,6 +322,7 @@ void M3508_PIDMode_Switch(M3508_HandleTypeDef *motor, M3508_PID_Mode mode) {
     Int16_IIRFilter_Init(&motor->position_pid.iir_filter, motor->position_pid.iir_filter.filter_alpha);
 }
 
+// 设置PID环的积分限幅
 void M3508_PID_SetIntLim(M3508_HandleTypeDef *motor, M3508_PID_Mode mode, double integral_limit) {
 
     if (mode == M3508_SPEEDPID_MODE) {

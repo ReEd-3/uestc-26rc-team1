@@ -78,38 +78,53 @@ HAL_StatusTypeDef M3508_CAN_Init(M3508_CAN_All *m3508_can, uint8_t motor_ids, FD
     return HAL_OK; // 初始化成功
 }
 
-// 设置一整个组的电机电流
-HAL_StatusTypeDef M3508_SetCurrent(M3508_CAN_All *m3508_can, M3508_Motor_Group group_id, int16_t *current) {
+// 设置一整个CAN的电机电流
+HAL_StatusTypeDef M3508_SetCurrent(M3508_CAN_All *m3508_can) {
 
     uint8_t data[8] = {0}; // 创建一个8字节的数据数组
     FDCAN_TxHeaderTypeDef CAN_TxHeader; // 创建发送报文头
 
+    // 低ID电机电流设置
     for (int i = 0; i < 4; i++){
-        if ((group_id == M3508_GROUP_LOW && m3508_can->motors[i].status == M3508_OFF)
-        || (group_id == M3508_GROUP_HIGH && m3508_can->motors[i + 4].status == M3508_OFF)) {
+        if (m3508_can->motors[i].status == M3508_OFF) {
             continue;
         }
-        if (current[i] < M3508_CURRENT_MIN) {
-        current[i] = M3508_CURRENT_MIN; // 限制反向最大电流值
+        if (m3508_can->cur_low[i] < M3508_CURRENT_MIN) {
+            m3508_can->cur_low[i] = M3508_CURRENT_MIN; // 限制反向最大电流值
         } 
-        else if (current[i] > M3508_CURRENT_MAX) {
-            current[i] = M3508_CURRENT_MAX; // 限制最大电流值
+        else if (m3508_can->cur_low[i] > M3508_CURRENT_MAX) {
+            m3508_can->cur_low[i] = M3508_CURRENT_MAX; // 限制最大电流值
         }
-        data[2 * i] = (current[i] >> 8) & 0xFF;  // 高字节
-        data[2 * i + 1] = current[i] & 0xFF;  // 低字节
+        data[2 * i] = (m3508_can->cur_low[i] >> 8) & 0xFF;  // 高字节
+        data[2 * i + 1] = m3508_can->cur_low[i] & 0xFF;  // 低字节
     }
 
-    if (group_id == M3508_GROUP_LOW) {
-        HAL_FDCAN_StdDefault_TxHeaderInit(&CAN_TxHeader, M3508_CONTROL_ID_LOW, 8, m3508_can->hfdcan); // 初始化发送报文头
-        return (HAL_FDCAN_Std_SendMessage(&CAN_TxHeader, m3508_can->hfdcan, data)); // 发送FDCAN报文
-    }
-    else if (group_id == M3508_GROUP_HIGH) {
-        HAL_FDCAN_StdDefault_TxHeaderInit(&CAN_TxHeader, M3508_CONTROL_ID_HIGH, 8, m3508_can->hfdcan); // 初始化发送报文头
-        return (HAL_FDCAN_Std_SendMessage(&CAN_TxHeader, m3508_can->hfdcan, data)); // 发送FDCAN报文
-    }
-    else {
+    HAL_FDCAN_StdDefault_TxHeaderInit(&CAN_TxHeader, M3508_CONTROL_ID_LOW, 8, m3508_can->hfdcan); // 初始化发送报文头
+    if (HAL_FDCAN_Std_SendMessage(&CAN_TxHeader, m3508_can->hfdcan, data) != HAL_OK) {
         return HAL_ERROR;
+    }; // 发送FDCAN报文
+
+    // 高ID电机电流设置
+    for (int i = 0; i < 4; i++){
+        if (m3508_can->motors[i + 4].status == M3508_OFF) {
+            continue;
+        }
+        if (m3508_can->cur_high[i] < M3508_CURRENT_MIN) {
+            m3508_can->cur_high[i] = M3508_CURRENT_MIN; // 限制反向最大电流值
+        } 
+        else if (m3508_can->cur_high[i] > M3508_CURRENT_MAX) {
+            m3508_can->cur_high[i] = M3508_CURRENT_MAX; // 限制最大电流值
+        }
+        data[2 * i] = (m3508_can->cur_high[i] >> 8) & 0xFF;  // 高字节
+        data[2 * i + 1] = m3508_can->cur_high[i] & 0xFF;  // 低字节
     }
+
+    HAL_FDCAN_StdDefault_TxHeaderInit(&CAN_TxHeader, M3508_CONTROL_ID_HIGH, 8, m3508_can->hfdcan); // 初始化发送报文头
+    if (HAL_FDCAN_Std_SendMessage(&CAN_TxHeader, m3508_can->hfdcan, data) != HAL_OK) {
+        return HAL_ERROR; 
+    } // 发送FDCAN报文
+
+    return HAL_OK;
 }
 
 // 读取总线上所有电机的状态
@@ -228,9 +243,6 @@ void M3508_PID_Update(M3508_CAN_All *m3508_can) {
     /* 读取所有电机反馈 */
     M3508_ReadStatus(m3508_can);
 
-    int16_t cur_low[4]  = {0};
-    int16_t cur_high[4] = {0};
-
     /* 对每个电机按 PID 模式进行 PID 计算 */
     for (int i = 0; i < 8; i++) {
 
@@ -271,15 +283,21 @@ void M3508_PID_Update(M3508_CAN_All *m3508_can) {
 
         /* 分入 LOW 组 (0~3) 或 HIGH 组 (4~7) */
         if (i < 4) {
-            cur_low[i] = (int16_t)output;
+            m3508_can->cur_low[i] = (int16_t)output;
         } else {
-            cur_high[i - 4] = (int16_t)output;
+            m3508_can->cur_high[i - 4] = (int16_t)output;
         }
     }
 
     /* CAN 发送：一个 ID 控制一组 4 个电机 */
-    M3508_SetCurrent(m3508_can, M3508_GROUP_LOW,  cur_low);
-    M3508_SetCurrent(m3508_can, M3508_GROUP_HIGH, cur_high);
+    // M3508_SetCurrent(m3508_can, M3508_GROUP_LOW,  cur_low);
+    // M3508_SetCurrent(m3508_can, M3508_GROUP_HIGH, cur_high);
+
+}
+
+// 发送当前总线所有缓存的电流值
+void M3508_CAN_CurrentUpdate(M3508_CAN_All *m3508_can) {
+    M3508_SetCurrent(m3508_can);
 }
 
 // ============================================================

@@ -50,11 +50,13 @@ typedef struct {
 typedef struct {
     FDCAN_HandleTypeDef *hfdcan;  // FDCAN句柄
     M3508_HandleTypeDef motors[8];  // 8个M3508电机的句柄数组
+    int16_t cur_high[4];
+    int16_t cur_low[4];
 } M3508_CAN_All;
 
 
 HAL_StatusTypeDef M3508_Init(M3508_HandleTypeDef *motor, FDCAN_HandleTypeDef *hfdcan, uint8_t can_id, M3508_PID_Mode mode, double max_speed);
-HAL_StatusTypeDef M3508_SetCurrent(M3508_CAN_All *m3508_can, M3508_Motor_Group group_id, int16_t *current);
+HAL_StatusTypeDef M3508_SetCurrent(M3508_CAN_All *m3508_can);
 HAL_StatusTypeDef M3508_CAN_Init(M3508_CAN_All *m3508_can, uint8_t motor_ids, FDCAN_HandleTypeDef *hfdcan);
 HAL_StatusTypeDef M3508_ReadStatus(M3508_CAN_All *m3508_can);
 
@@ -70,6 +72,7 @@ void M3508_PositionPID_Init(M3508_CAN_All *m3508_can, double Kp, double Ki, doub
 
 // === 通用 PID 更新 ===
 void M3508_PID_Update(M3508_CAN_All *m3508_can);  // 根据电机的PID模式分发计算
+void M3508_CAN_CurrentUpdate(M3508_CAN_All *m3508_can);
 void M3508_PIDMode_Switch(M3508_HandleTypeDef *motor, M3508_PID_Mode mode);  // PID模式切换
 void M3508_PID_SetIntLim(M3508_HandleTypeDef *motor, M3508_PID_Mode mode, double integral_limit);  // 积分限幅设置
 void M3508_IIRFilter_SetAlpha(M3508_HandleTypeDef *motor, M3508_PID_Mode mode, double alpha);  // 指定环的低通滤波系数设置（0~1，1=直通）

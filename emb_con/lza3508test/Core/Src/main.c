@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "fdcan.h"
+#include "stm32h723xx.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -51,7 +52,8 @@
 /* USER CODE BEGIN PV */
 
 double target_rpm[8] = {0}; // 创建一个数据数组
-volatile uint8_t tim_flag = 0; // 定时器标志位
+volatile uint8_t tim_flag_setcur = 0; // 定时器标志位
+volatile uint8_t tim_flag_pidupdate = 0; // 定时器标志位
 M3508_CAN_All m3508_can_1;
 char vofa_buf[64]; // VOFA帧缓冲
 
@@ -69,7 +71,10 @@ static void MPU_Config(void);
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if (htim->Instance == TIM1) { // 检查是否为定时器1的中断
-        tim_flag = 1; // 设置定时器标志位
+        tim_flag_setcur = 1; // 设置定时器标志位
+    }
+    else if (htim->Instance ==  TIM2) {
+        tim_flag_pidupdate = 1;
     }
 }
 
@@ -125,7 +130,7 @@ int main(void)
   MX_USART3_UART_Init();
   MX_FDCAN1_Init();
   MX_TIM1_Init();
-
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 
   /* 注意：MX_USART3_UART_Init 必须保持在 MX_FDCAN1_Init 之前！
@@ -133,10 +138,11 @@ int main(void)
      会扰动已配置好的 FDCAN，导致收不到电机反馈、电机飞转。
      CubeMX 重新生成后请检查初始化顺序是否被打乱！ */
   HAL_TIM_Base_Start_IT(&htim1); // 启动定时器1中断
+  HAL_TIM_Base_Start_IT(&htim2); // 启动定时器2中断
   // PID初始化和CAN初始化
   M3508_CAN_Init(&m3508_can_1, (1 << 5), &hfdcan1); // 【串口单独测试】临时注释
-  M3508_SpeedPID_Init(&m3508_can_1, 4, 2, 0.02, 0.001);
-  M3508_PositionPID_Init(&m3508_can_1, 3.5, 0.05, 0.02, 0.001);
+  M3508_SpeedPID_Init(&m3508_can_1, 4, 2, 0.02, 0.002);
+  M3508_PositionPID_Init(&m3508_can_1, 3.5, 0.05, 0.02, 0.002);
   // 设置限幅
   M3508_PID_SetIntLim(&m3508_can_1.motors[5], M3508_SPEEDPID_MODE, 400);  // 速度环限幅（RPM·s）
   M3508_PID_SetIntLim(&m3508_can_1.motors[5], M3508_POSITIONPID_MODE, 500);  // 位置环限幅（计数·s）
@@ -160,21 +166,26 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    if (tim_flag) { // 检查定时器标志位
-      tim_flag = 0; // 清除标志位
+    if (tim_flag_pidupdate) { // 检查定时器标志位
+      tim_flag_pidupdate = 0; // 清除标志位
 
       static uint8_t pos_init = 0;
       if (!pos_init) {  // 首拍：位置目标吸附到当前位置，避免初始误差跳变
         pos_init = 1;
         target_rpm[5] = m3508_can_1.motors[5].position;
       }
+      // VOFA_Send();
+      M3508_PID_Update(&m3508_can_1); // 【串口单独测试】临时注释
+      
+    }
+    if (tim_flag_setcur) {
+      tim_flag_setcur = 0;
       target_rpm[5] += 20;  // 位置目标每拍递增 45 计数（≈330 RPM 当量）
       if (target_rpm[5] > M3508_ENCODER_RESOLUTION) {
         target_rpm[5] -= M3508_ENCODER_RESOLUTION;
       }
       M3508_SetPositionTarget(&m3508_can_1, target_rpm);
-      // VOFA_Send();
-      M3508_PID_Update(&m3508_can_1); // 【串口单独测试】临时注释
+      M3508_CAN_CurrentUpdate(&m3508_can_1);
     }
     /* USER CODE END WHILE */
 

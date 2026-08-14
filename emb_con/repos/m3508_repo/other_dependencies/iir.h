@@ -3,6 +3,7 @@
 
 #include "stm32h7xx_hal.h"
 
+// 滤波器句柄
 typedef struct {
     int16_t raw_data;       // 原始数据（输入）
     int16_t filtered_data;  // 滤波后数据（输出）
