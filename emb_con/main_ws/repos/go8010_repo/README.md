@@ -1,169 +1,205 @@
-# GO-M8010-6 电机驱动库（GO8010_driver）
+# GO-M8010-6 电机驱动库 使用手册
 
-基于 STM32 HAL 的宇树 GO-M8010-6 关节电机驱动库，RS-485 半双工、非阻塞收发，提供打包/发送/接收/解析/超时检测等完整接口。
+STM32（HAL 库）驱动宇树 **GO-M8010-6** 关节电机。RS-485 半双工，**4Mbps**，支持 7 种控制模式，附带一个**补 I 积分控制器**（消除位置静差）。所有收发细节封装在库里，使用者只需三步：**初始化 → 选模式 → 循环收发**。
 
-## 1. 特性
+---
 
-- **对象化**：一个电机一个 `GO8010_Motor_t` 实例，支持总线 0~14 多个电机
-- **硬件可配置**：UART 句柄、方向脚（DE）引脚在初始化时传入，换板子只改 `Init`
-- **非阻塞**：发送不等待回包，回包由中断异步接收，`Poll` 轮询取结果
-- **超时检测**：`IsTimeout` 判断电机是否失联
-- **纯协议驱动**：不依赖具体控制算法，速度环/位置环/PID 可在此之上扩展
-
-## 2. 硬件要求
-
-| 项 | 要求 |
-|----|------|
-| MCU | STM32（HAL 库，示例用 STM32H723） |
-| 串口 | RS-485 半双工，**4Mbps**，8N1 |
-| 收发器 | 需支持 4Mbps（如 SP3485/MAX3485，10Mbps 级；MAX485 只有 2.5Mbps 不行） |
-| 方向脚 | DE（高=发送 / 低=接收），接一个 GPIO |
-| 电机 | GO-M8010-6，ID 0~14 |
-
-## 3. 文件结构
+## 1. 项目说明
 
 ```
-Core/Inc/GO8010_driver.h   驱动库头文件（本库）
-Core/Src/GO8010_driver.c   驱动库实现
-Core/Inc/gom_protocol.h    协议结构体（宇树原版，勿改）
-Core/Src/gom_protocol.c    打包函数 modify_data
-Core/Inc/crc_ccitt.h       CRC 校验
-Core/Src/crc_ccitt.c       CRC 实现
+| 项目 | 说明 |
+|------|------|
+| 串口 | 任意 UART，配成 **4Mbps、8N1**（8 位数据、无校验、1 停止位） |
+| 方向脚 DE | 任意 GPIO 输出，**高=发送 / 低=接收**，软件控制，接收发器的 DE/RE |
+| 收发器 | 必须支持 4Mbps：SP3485 / MAX3485（MAX485 只有 2.5Mbps，**不行**） |
+| 电机 ID | 0~14，需与电机实际配置一致（15 为广播，无回包） |
+
+
+---
+
+## 2. CubeMX 配置
+
+1. **串口**：选一个 UART，模式 Asynchronous，波特率 **4000000**，8 位、无校验、1 停止位。
+2. **方向脚**：选一个 GPIO 引脚，设为 **Output**（推挽），初始电平随便（Init 会设为低=接收态）。
+3. 生成代码时，UART 的 RX 中断**可开可不开**（本库用阻塞收发，不依赖中断）。
+
+> 4Mbps 对时钟精度有要求，若收发不稳定，检查 PCLK 分频值是否精确。
+
+---
+
+## 3. 加入工程
+
+把下面 8 个文件拷贝进工程，并加进 Keil 编译、设好头文件路径即可：
+
+```
+GO8010_driver.h / .c     驱动库本体（7 种模式 + 收发 + 反馈读取）
+pid.h / .c               补 I 积分控制器（可选，做位置控制才用）
+gom_protocol.h / .c      协议层（官方源文件）
+crc_ccitt.h / .c         CRC 校验（官方）
 ```
 
-## 4. 快速开始
+---
+
+## 4. 使用流程（三步）
 
 ```c
 #include "GO8010_driver.h"
 
-GO8010_Motor_t motor;   // 一个电机一个实例
+GO8010_Motor_t motor;            /* 每个电机一个实例 */
 
 int main(void)
 {
-    /* 1. 初始化：传 UART 句柄、DE 脚端口/引脚、电机ID */
+    /* ① 初始化：UART 句柄、DE 脚端口/引脚、电机ID */
     GO8010_Motor_Init(&motor, &huart9, GPIOF, GPIO_PIN_14, 1);
 
-    /* 2. 设置命令：速度模式，输出轴匀速 6.28 rad/s（1 圈/秒） */
-    GO8010_Motor_SetCmd(&motor, 1, 0.0f, 6.28f * MOTOR_GEAR_RATIO, 0.0f, 0.0f, 0.05f);
+    /* ② 选一种控制模式（例：速度模式） */
+    GO8010_Motor_SetVelocity(&motor, 6.28f, 0.02f);   /* 目标6.28rad/s(转子) + K_W */
 
-    /* 3. 循环：Poll 读状态 → Send 发命令 */
+    /* ③ 循环：阻塞收发（发送命令 + 收反馈 + 解析），1kHz */
     while (1)
     {
-        GO8010_Motor_Poll(&motor);    // 有回包则更新 motor.data
-        GO8010_Motor_Send(&motor);    // 发送命令（非阻塞）
-        HAL_Delay(1);                 // 1ms 周期
+        if (GO8010_Motor_SendRecv(&motor, 10))        /* 10ms超时，返回1=有效回包 */
+        {
+            float pos = GO8010_Motor_GetPos(&motor);  /* 读位置（转子 rad） */
+            float vel = GO8010_Motor_GetVel(&motor);  /* 读速度（转子 rad/s） */
+        }
+        HAL_Delay(1);                                 /* 1ms = 1kHz */
     }
 }
 ```
 
-## 5. API 参考
+> ⚠️ 命令必须**持续发送**（电机有通讯看门狗，断一会就掉使能），1kHz 合适，别只发一次。
 
-### 5.1 数据结构
+---
 
-```c
-typedef struct {
-    UART_HandleTypeDef *huart;    // UART 句柄
-    GPIO_TypeDef       *de_port;  // 方向脚端口
-    uint16_t            de_pin;   // 方向脚引脚
-    uint8_t             id;       // 电机ID
+## 5. 七种控制模式
 
-    MotorCmd_t  cmd;              // 命令（浮点参数）
-    MotorData_t data;             // 反馈（解析后）
-
-    uint8_t          rx_buf[16];  // 接收缓冲区
-    volatile uint8_t rx_done;     // 接收完成标志
-    uint32_t         tx_count;    // 发送计数
-    uint32_t         last_rx_tick;// 最后收到回包时刻（超时检测）
-} GO8010_Motor_t;
-```
-
-### 5.2 函数
-
-| 函数 | 说明 |
-|------|------|
-| `GO8010_Motor_Init(motor, huart, de_port, de_pin, id)` | 初始化（方向脚默认接收态） |
-| `GO8010_Motor_SetCmd(motor, mode, T, W, Pos, K_P, K_W)` | 设置控制命令 |
-| `GO8010_Motor_Send(motor)` | 打包+发送+准备接收，非阻塞，返回 0 成功 |
-| `GO8010_Motor_Poll(motor)` | 查回包标志并解析，返回 1=有新反馈 |
-| `GO8010_Motor_IsTimeout(motor, timeout_ms)` | 超时检测，返回 1=失联 |
-| `GO8010_Motor_GetPos(motor)` | 读位置（rad，转子） |
-| `GO8010_Motor_GetVel(motor)` | 读速度（rad/s，转子） |
-| `GO8010_Motor_GetTorque(motor)` | 读力矩（N·m） |
-| `GO8010_Motor_GetTemp(motor)` | 读温度（℃） |
-| `GO8010_Motor_GetError(motor)` | 读错误码（0 正常） |
-| `GO8010_Motor_IsAlive(motor)` | 最近一次反馈 CRC 是否正确 |
-
-### 5.3 命令参数
-
-混合控制公式：`τ = T + K_P×(Pos − p) + K_W×(W − ω)`
-
-| 参数 | 含义 | 范围 | 定标 |
+| 模式 | 函数 | 用途 | 参数 |
 |------|------|------|------|
-| `mode` | 0=锁定，1=FOC，2=编码器校准 | — | — |
-| `T` | 前馈力矩 | -127.99~127.99 N·m | ×256 |
-| `W` | 期望角速度（转子） | -804~804 rad/s | ÷2π×256 |
-| `Pos` | 期望位置（转子） | rad | ÷2π×32768 |
-| `K_P` | 位置刚度 | 0~25.599 | ×1280 |
-| `K_W` | 速度阻尼 | 0~25.599 | ×1280 |
+| 停止 | `GO8010_Motor_Stop(motor)` | 电机锁死 | — |
+| 速度 | `GO8010_Motor_SetVelocity(motor, w, k_w)` | 恒速旋转 | W 目标速度(rad/s) + K_W |
+| 位置 | `GO8010_Motor_SetPosition(motor, pos, k_p, k_w)` | 停到指定位置 | Pos + K_P 刚度 + K_W 阻尼 |
+| 阻尼 | `GO8010_Motor_SetDamping(motor, k_w)` | 被外力推着走（柔顺） | K_W |
+| 力矩 | `GO8010_Motor_SetTorque(motor, t)` | 持续出力 | T（N·m） |
+| 零力矩 | `GO8010_Motor_SetZeroTorque(motor)` | 完全放松 | — |
+| 力位混合 | `GO8010_Motor_SetHybrid(motor, t, w, pos, k_p, k_w)` | 最常用，见 §6 | T+W+Pos+K_P+K_W |
 
-> **注意**：`W`/`Pos` 是**减速前转子**的量。输出轴 = 转子 ÷ 减速比（6.33）。
-> 给输出轴目标要乘 `MOTOR_GEAR_RATIO`（6.33f）。
-
-## 6. 控制模式示例
-
+**常见参数范围**：`K_P` 0~25.599（典型 0.2，越大越"硬"）；`K_W` 0~25.599（典型 0.05）；`T` -127.99~127.99 N·m。此处需要特别注意的是，给电机发送的命令都是针对减速器之前的电机转子，所以在进行实际控制的过程中，一定要注
+意考虑电机的减速比。在 GO-8010-6 的电机中，减速比为 6.33。K和W要*减速比再作为api参数，以下是例子：
 ```c
-/* 力矩模式：输出 0.05 N·m */
-GO8010_Motor_SetCmd(&motor, 1, 0.05f, 0.0f, 0.0f, 0.0f, 0.0f);
+/* 速度模式：转子 6.28 rad/s（≈1 圈/秒） */
+GO8010_Motor_SetVelocity(&motor, 6.28f*MOTOR_GEAR_RATIO, 0.02f);
 
-/* 速度模式：输出轴 6.28 rad/s */
-GO8010_Motor_SetCmd(&motor, 1, 0.0f, 6.28f * MOTOR_GEAR_RATIO, 0.0f, 0.0f, 0.05f);
+/* 位置模式：输出轴停在 0.5 rad（≈28.6°），K_P=0.1, K_W=0.05 */
+GO8010_Motor_SetPosition(&motor, 0.5f * MOTOR_GEAR_RATIO, 0.1f, 0.05f);
 
-/* 位置模式：输出轴停在 3.14 rad */
-GO8010_Motor_SetCmd(&motor, 1, 0.0f, 0.0f, 3.14f * MOTOR_GEAR_RATIO, 0.2f, 0.0f);
+/* 力矩模式：输出 0.1 N·m */
+GO8010_Motor_SetTorque(&motor, 0.1f);
 
-/* 锁定/停机 */
-GO8010_Motor_SetCmd(&motor, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+/* 阻尼模式：柔顺，转一下松手自己不动 */
+GO8010_Motor_SetDamping(&motor, 0.05f);
 ```
 
-## 7. 完整示例：带超时检测的控制循环
+---
+
+## 6. PID：位置控制 + 补 I（推荐做法）
+
+**背景**：GO-M8010-6 电机**内置了 P（K_P）和 D（K_W）**，只缺积分 I。本库的 PID 只做积分，输出**前馈力矩 T**，与内置 PD 一起构成完整 PID：
+
+```
+τ = T(积分) + K_P×(Pos − p) + K_W×(W − ω)
+```
+
+**用法（位置环补 I，走混合模式）**：
 
 ```c
-while (1)
+#include "GO8010_driver.h"
+#include "pid.h"
+
+GO8010_Motor_t motor;
+PID_t pos_i;
+
+float target_rotor = 1.0f * MOTOR_GEAR_RATIO;  /* 目标位置（转子 rad，输出轴 1.0 rad） */
+float K_P = 0.05f;   /* 位置刚度（内置 P） */
+float K_W = 0.05f;   /* 速度阻尼（内置 D） */
+
+int main(void)
 {
-    /* 收：有回包则更新状态 */
-    if (GO8010_Motor_Poll(&motor)) {
-        // motor.data 已是最新状态
+    GO8010_Motor_Init(&motor, &huart9, GPIOF, GPIO_PIN_14, 1);
+
+    /* PID_Init(ki, dt=1ms, 积分限幅, 输出力矩限幅) */
+    PID_Init(&pos_i, 0.2f, 0.001f, 50.0f, 5.0f);
+
+    while (1)
+    {
+        /* 积分输出前馈力矩 T */
+        float t_ff = PID_Compute(&pos_i, target_rotor, GO8010_Motor_GetPos(&motor));
+
+        /* 混合模式：T=积分, Pos=目标, K_P/K_W=内置PD */
+        GO8010_Motor_SetHybrid(&motor, t_ff, 0.0f, target_rotor, K_P, K_W);
+        GO8010_Motor_SendRecv(&motor, 10);
+        HAL_Delay(1);
     }
-    /* 超时：超过 10ms 没回包 = 失联 */
-    else if (GO8010_Motor_IsTimeout(&motor, 10)) {
-        // 停机 + 清 PID 积分 + 报警
-        GO8010_Motor_SetCmd(&motor, 0, 0, 0, 0, 0, 0);
-    }
-
-    /* PID 计算（示例） */
-    float err = target - GO8010_Motor_GetPos(&motor);
-    float out = pid_compute(err);
-
-    /* 发 */
-    GO8010_Motor_SetCmd(&motor, 1, out, 0.0f, 0.0f, 0.0f, 0.0f);
-    GO8010_Motor_Send(&motor);
-
-    HAL_Delay(1);
 }
 ```
 
-## 8. 注意事项
+**PID 三个 API**：
 
-1. **命令要持续发**：电机有通讯看门狗，一段时间收不到命令会掉使能。所以必须周期 `Send`（1kHz 合适）。
-2. **Poll 先于 Send**：`Send` 会清 `rx_done` 标志，所以循环里要**先 `Poll` 解析、再 `Send`**，否则丢回包。
-3. **发送间隔 > 回包时间（约 200µs）**：间隔太短会 `AbortReceive` 截断上一包。1kHz（1ms）没问题。
-4. **单在途命令**：半双工，同一时刻只能有一个电机在收发，多电机要轮流 `Send`→`Poll`。
-5. **UART 中断回调**：驱动内部定义了 `HAL_UART_RxCpltCallback`，若还有别的串口要用接收中断，需在回调里一起处理。
-6. **定标**：`W`/`Pos` 是转子量，输出轴要乘/除减速比 6.33。
+```c
+PID_Init(&pos_i, ki, dt, 积分限幅, 力矩限幅);   /* 一次设好 */
+PID_Reset(&pos_i);                              /* 换目标/换模式时清积分 */
+float t = PID_Compute(&pos_i, target, current); /* 每周期调用，返回前馈力矩 T */
+```
 
-## 9. 协议摘要
+**调参顺序**：
+1. `ki` 先设 0（纯内置 PD），把 `K_P`/`K_W` 调到位置稳定不震荡。
+2. 从小到大加 `ki` 消除静差；`ki` 太大位置会来回晃。
+3. 先设小力矩限幅（如 5 N·m）保安全，确认不猛冲再放开。
 
-- **命令帧 17 字节**：`0xFE 0xEE` + 模式字节(ID:4bit/模式:3bit/保留:1bit) + 12 字节参数(力矩/速度/位置/K_P/K_W) + CRC16
-- **回包 16 字节**：`0xFD 0xEE` + 模式字节 + 11 字节反馈(力矩/速度/位置/温度/错误码/足端力) + CRC16
-- **CRC**：CRC-CCITT（XMODEM 变体，init=0）
-- **波特率**：4Mbps，8N1，小端
+---
+
+## 7. 单位：转子 vs 输出轴
+
+电机带 **6.33 减速比**，协议里所有位置/速度都是**减速前转子**的量：
+
+```
+输出轴值 = 转子值 ÷ 6.33     （MOTOR_GEAR_RATIO）
+```
+
+- 要输出轴 1 rad/s → 下发 `1.0 × 6.33 = 6.33 rad/s`
+- 读回转子 6.33 rad → 输出轴实际 1.0 rad
+
+---
+
+## 8. 反馈读取
+
+| 函数 | 含义 |
+|------|------|
+| `GO8010_Motor_GetPos(motor)` | 位置（转子 rad） |
+| `GO8010_Motor_GetVel(motor)` | 速度（转子 rad/s） |
+| `GO8010_Motor_GetTorque(motor)` | 实际力矩（N·m） |
+| `GO8010_Motor_GetTemp(motor)` | 温度（℃） |
+| `GO8010_Motor_GetError(motor)` | 错误码：0正常 / 1过热 / 2过流 / 3过压 / 4编码器故障 / 5母线欠压 / 6绕组过热 |
+| `GO8010_Motor_IsAlive(motor)` | 最近一次回包 CRC 是否正确（1=通讯正常） |
+
+---
+
+## 9. 常见问题（FAQ）
+
+| 现象 | 排查方向 |
+|------|----------|
+| 电机不转，`timeout` 一直涨 | ① 接线/收发器；② 电机 ID 对不对；③ 波特率精确度；④ 电源没给 |
+| 有回包但位置不动 | 模式参数设错、K_P 太小、目标单位忘乘/除了减速比 |
+| 转一阵自动掉使能 | 命令没持续发（必须 1kHz 循环 `SendRecv`） |
+| 多个电机 | 半双工同一时刻只能一个电机收发，多个电机轮流调用各自实例 |
+
+---
+
+## 10. 移植检查清单
+
+- [ ] 串口 4Mbps、8N1 配好
+- [ ] 收发器支持 4Mbps（SP3485/MAX3485）
+- [ ] DE 脚接到收发器 DE/RE，GPIO 输出模式
+- [ ] 电机 ID 与 Init 一致
+- [ ] 电源够功率
+- [ ] 主循环 1kHz 持续 `SendRecv`

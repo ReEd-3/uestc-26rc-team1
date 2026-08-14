@@ -5,12 +5,7 @@
 #include "GO8010_driver.h"
 #include <string.h>
 
-/* 当前有在途命令的电机（半双工，同一时刻只可能有一个） */
-static GO8010_Motor_t *current_motor = NULL;
-
-/// @brief 手动按字节解析 16 字节电机反馈（不依赖位域布局，避免 armclang 与 gcc 打包差异）
-/// @param buf  接收到的 16 字节原始数据
-/// @param data 解析结果写入的电机反馈结构体
+/* 手动按字节解析 16 字节反馈（不依赖位域布局，避免 armclang/gcc 打包差异） */
 static void parse_feedback(const uint8_t *buf, MotorData_t *data)
 {
     if (buf[0] != 0xFD || buf[1] != 0xEE)
@@ -47,22 +42,9 @@ static void parse_feedback(const uint8_t *buf, MotorData_t *data)
     data->correct = 1;
 }
 
-void GO8010_Motor_Init(GO8010_Motor_t *motor, UART_HandleTypeDef *huart,
-                       GPIO_TypeDef *de_port, uint16_t de_pin, uint8_t id)
-{
-    memset(motor, 0, sizeof(GO8010_Motor_t));
-    motor->huart   = huart;
-    motor->de_port = de_port;
-    motor->de_pin  = de_pin;
-    motor->id      = id;
-    motor->last_rx_tick = HAL_GetTick();   /* 超时计时起点 */
-
-    /* 方向脚默认接收态 */
-    HAL_GPIO_WritePin(de_port, de_pin, GPIO_PIN_RESET);
-}
-
-void GO8010_Motor_SetCmd(GO8010_Motor_t *motor, uint8_t mode,
-                         float T, float W, float Pos, float K_P, float K_W)
+/* 内部：设置原始命令（各模式函数都调它） */
+static void GO8010_Motor_SetCmd(GO8010_Motor_t *motor, uint8_t mode,
+                                float T, float W, float Pos, float K_P, float K_W)
 {
     motor->cmd.id   = motor->id;
     motor->cmd.mode = mode;
@@ -73,12 +55,64 @@ void GO8010_Motor_SetCmd(GO8010_Motor_t *motor, uint8_t mode,
     motor->cmd.K_W  = K_W;
 }
 
-int GO8010_Motor_Send(GO8010_Motor_t *motor)
+void GO8010_Motor_Init(GO8010_Motor_t *motor, UART_HandleTypeDef *huart,
+                       GPIO_TypeDef *de_port, uint16_t de_pin, uint8_t id)
+{
+    memset(motor, 0, sizeof(GO8010_Motor_t));
+    motor->huart   = huart;
+    motor->de_port = de_port;
+    motor->de_pin  = de_pin;
+    motor->id      = id;
+
+    /* 方向脚默认接收态 */
+    HAL_GPIO_WritePin(de_port, de_pin, GPIO_PIN_RESET);
+}
+
+/* ============ 7 种控制模式 ============ */
+
+void GO8010_Motor_Stop(GO8010_Motor_t *motor)
+{
+    GO8010_Motor_SetCmd(motor, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+}
+
+void GO8010_Motor_SetVelocity(GO8010_Motor_t *motor, float w_rotor, float k_w)
+{
+    GO8010_Motor_SetCmd(motor, 1, 0.0f, w_rotor, 0.0f, 0.0f, k_w);
+}
+
+void GO8010_Motor_SetPosition(GO8010_Motor_t *motor, float pos_rotor, float k_p, float k_w)
+{
+    GO8010_Motor_SetCmd(motor, 1, 0.0f, 0.0f, pos_rotor, k_p, k_w);
+}
+
+void GO8010_Motor_SetDamping(GO8010_Motor_t *motor, float k_w)
+{
+    GO8010_Motor_SetCmd(motor, 1, 0.0f, 0.0f, 0.0f, 0.0f, k_w);
+}
+
+void GO8010_Motor_SetTorque(GO8010_Motor_t *motor, float torque)
+{
+    GO8010_Motor_SetCmd(motor, 1, torque, 0.0f, 0.0f, 0.0f, 0.0f);
+}
+
+void GO8010_Motor_SetZeroTorque(GO8010_Motor_t *motor)
+{
+    GO8010_Motor_SetCmd(motor, 1, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+}
+
+void GO8010_Motor_SetHybrid(GO8010_Motor_t *motor, float T, float W, float Pos,
+                            float K_P, float K_W)
+{
+    GO8010_Motor_SetCmd(motor, 1, T, W, Pos, K_P, K_W);
+}
+
+/* ============ 阻塞收发 ============ */
+
+int GO8010_Motor_SendRecv(GO8010_Motor_t *motor, uint32_t timeout_ms)
 {
     modify_data(&motor->cmd);   /* 打包成 17 字节 */
 
-    /* 停掉上一次可能未完成的接收 */
-    HAL_UART_AbortReceive(motor->huart);
+    HAL_UART_AbortReceive(motor->huart);   /* 复位接收状态 */
 
     /* 切到发送 */
     HAL_GPIO_WritePin(motor->de_port, motor->de_pin, GPIO_PIN_SET);
@@ -87,7 +121,7 @@ int GO8010_Motor_Send(GO8010_Motor_t *motor)
                           sizeof(RIS_ControlData_t), 100) != HAL_OK)
     {
         HAL_GPIO_WritePin(motor->de_port, motor->de_pin, GPIO_PIN_RESET);
-        return -1;
+        return 0;
     }
 
     /* 等最后一个字节完全移出移位寄存器，避免过早切方向截断数据 */
@@ -97,31 +131,25 @@ int GO8010_Motor_Send(GO8010_Motor_t *motor)
 
     motor->tx_count++;
 
-    /* 切回接收，武装接收中断（不等待回包，回包异步处理） */
+    /* 切回接收 */
     HAL_GPIO_WritePin(motor->de_port, motor->de_pin, GPIO_PIN_RESET);
-    motor->rx_done = 0;
-    current_motor  = motor;
-    HAL_UART_Receive_IT(motor->huart, motor->rx_buf, sizeof(motor->rx_buf));
 
-    return 0;
-}
+    /* 清掉发送期间 RX 脚悬空可能产生的杂散字节/错误标志（防阻塞接收被干扰） */
+    __HAL_UART_CLEAR_OREFLAG(motor->huart);   /* 清过载 ORE（内部读 RDR，顺带清 RXNE） */
+    __HAL_UART_CLEAR_FEFLAG(motor->huart);    /* 清帧错误 FE */
 
-int GO8010_Motor_Poll(GO8010_Motor_t *motor)
-{
-    if (motor->rx_done)
+    /* 阻塞接收 16 字节回包 */
+    if (HAL_UART_Receive(motor->huart, motor->rx_buf, sizeof(motor->rx_buf), timeout_ms) != HAL_OK)
     {
-        motor->rx_done = 0;
-        motor->last_rx_tick = HAL_GetTick();   /* 记录收到回包的时刻 */
-        parse_feedback(motor->rx_buf, &motor->data);
-        return 1;
+        motor->data.timeout++;
+        return 0;
     }
-    return 0;
+
+    parse_feedback(motor->rx_buf, &motor->data);   /* 解析 */
+    return motor->data.correct;
 }
 
-int GO8010_Motor_IsTimeout(GO8010_Motor_t *motor, uint32_t timeout_ms)
-{
-    return ((HAL_GetTick() - motor->last_rx_tick) > timeout_ms);
-}
+/* ============ 反馈读取 ============ */
 
 float GO8010_Motor_GetPos(const GO8010_Motor_t *motor)    { return motor->data.Pos; }
 float GO8010_Motor_GetVel(const GO8010_Motor_t *motor)    { return motor->data.W; }
@@ -129,11 +157,3 @@ float GO8010_Motor_GetTorque(const GO8010_Motor_t *motor) { return motor->data.T
 int   GO8010_Motor_GetTemp(const GO8010_Motor_t *motor)   { return motor->data.Temp; }
 int   GO8010_Motor_GetError(const GO8010_Motor_t *motor)  { return motor->data.MError; }
 int   GO8010_Motor_IsAlive(const GO8010_Motor_t *motor)   { return motor->data.correct; }
-
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-    if (current_motor && huart == current_motor->huart)
-    {
-        current_motor->rx_done = 1;
-    }
-}
