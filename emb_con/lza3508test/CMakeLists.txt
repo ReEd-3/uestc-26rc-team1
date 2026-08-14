@@ -48,6 +48,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Core/Src/fdcan_std.c
     Core/Src/m3508_driver.c
     Core/Src/pid.c
+    Core/Src/iir.c
 )
 
 # Add include paths

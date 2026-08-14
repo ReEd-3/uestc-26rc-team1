@@ -2,9 +2,11 @@
 #include "fdcan_std.h"
 #include "m3508_driver.h"
 #include "pid.h"
+#include "float.h"
+#include "iir.h"
 
 // 对总线上单个电机进行初始化
-HAL_StatusTypeDef M3508_Init(M3508_HandleTypeDef *motor, FDCAN_HandleTypeDef *hfdcan, uint8_t can_id) {
+HAL_StatusTypeDef M3508_Init(M3508_HandleTypeDef *motor, FDCAN_HandleTypeDef *hfdcan, uint8_t can_id, M3508_PID_Mode mode, double max_speed) {
     if (motor == NULL || hfdcan == NULL) {
         return HAL_ERROR; // 检查指针是否为空
     }
@@ -16,6 +18,8 @@ HAL_StatusTypeDef M3508_Init(M3508_HandleTypeDef *motor, FDCAN_HandleTypeDef *hf
     motor->speed = 0;
     motor->position = 0;
     motor->temperature = 0;
+    motor->pid_mode = mode;
+    motor->max_speed = max_speed;
 
     return HAL_OK; // 初始化成功
 }
@@ -32,7 +36,7 @@ HAL_StatusTypeDef M3508_CAN_Init(M3508_CAN_All *m3508_can, uint8_t motor_ids, FD
     m3508_can->hfdcan = hfdcan;
 
     // 指定滤波器配置
-    FDCAN_FilterTypeDef sFilterConfig;
+    FDCAN_FilterTypeDef sFilterConfig = {0};  // 这里必须置0，在arm compile环境下不置0编译会有问题
     sFilterConfig.IdType       = FDCAN_STANDARD_ID;
     sFilterConfig.FilterType   = FDCAN_FILTER_MASK;      // 掩码模式：精确匹配
     sFilterConfig.FilterID2    = 0x7FF;                   // 全掩码：所有位必须匹配
@@ -51,8 +55,8 @@ HAL_StatusTypeDef M3508_CAN_Init(M3508_CAN_All *m3508_can, uint8_t motor_ids, FD
 
     for (int i = 0; i < 8; i++) {
 
-        // 初始化每个电机，主要是id
-        if (M3508_Init(&m3508_can->motors[i], hfdcan, i + 1) != HAL_OK) {
+        // 初始化每个电机，主要是id, 默认速度环
+        if (M3508_Init(&m3508_can->motors[i], hfdcan, i + 1, M3508_SPEEDPID_MODE, DBL_MAX) != HAL_OK) {
             return HAL_ERROR; // 初始化失败
         }
 
@@ -178,43 +182,6 @@ void M3508_SpeedPID_Init(M3508_CAN_All *m3508_can, double Kp, double Ki, double 
     }
 }
 
-void M3508_SpeedPID_Update(M3508_CAN_All *m3508_can) {
-
-    /* 读取所有电机反馈 */
-    M3508_ReadStatus(m3508_can);
-
-    int16_t cur_low[4]  = {0};
-    int16_t cur_high[4] = {0};
-
-    /* 对每个电机进行 PID 计算 */
-    for (int i = 0; i < 8; i++) {
-
-        if (m3508_can->motors[i].status != M3508_ON) {
-            continue;  // 未启用的电机电流保持 0
-        }
-
-        M3508_HandleTypeDef *motor = &(m3508_can->motors[i]);
-
-        /* 将反馈转速写入 PID，计算控制量 */
-        motor->speed_pid.current = motor->speed;
-        double output = PID_Compute(&motor->speed_pid);
-
-        /* 限幅到电流范围 [-16384, 16384] */
-        if (output > M3508_CURRENT_MAX)  output = M3508_CURRENT_MAX;
-        if (output < M3508_CURRENT_MIN)  output = M3508_CURRENT_MIN;
-
-        /* 分入 LOW 组 (0~3) 或 HIGH 组 (4~7) */
-        if (i < 4) {
-            cur_low[i] = (int16_t)output;
-        } else {
-            cur_high[i - 4] = (int16_t)output;
-        }
-    }
-
-    /* CAN 发送：一个 ID 控制一组 4 个电机 */
-    M3508_SetCurrent(m3508_can, M3508_GROUP_LOW,  cur_low);
-    M3508_SetCurrent(m3508_can, M3508_GROUP_HIGH, cur_high);
-}
 
 // ============================================================
 //  位置环 PID 控制
@@ -242,7 +209,12 @@ void M3508_PositionPID_Init(M3508_CAN_All *m3508_can, double Kp, double Ki, doub
     }
 }
 
-void M3508_PositionPID_Update(M3508_CAN_All *m3508_can) {
+
+// ============================================================
+//  通用 PID 更新
+// ============================================================
+
+void M3508_PID_Update(M3508_CAN_All *m3508_can) {
 
     /* 读取所有电机反馈 */
     M3508_ReadStatus(m3508_can);
@@ -250,7 +222,7 @@ void M3508_PositionPID_Update(M3508_CAN_All *m3508_can) {
     int16_t cur_low[4]  = {0};
     int16_t cur_high[4] = {0};
 
-    /* 对每个电机进行 PID 计算 */
+    /* 对每个电机按 PID 模式进行 PID 计算 */
     for (int i = 0; i < 8; i++) {
 
         if (m3508_can->motors[i].status != M3508_ON) {
@@ -259,9 +231,30 @@ void M3508_PositionPID_Update(M3508_CAN_All *m3508_can) {
 
         M3508_HandleTypeDef *motor = &(m3508_can->motors[i]);
 
-        /* 将反馈转速写入 PID，计算控制量 */
-        motor->position_pid.current = motor->position;
-        double output = PID_Loop_Compute(&motor->position_pid, 0, M3508_ENCODER_RESOLUTION);
+        double output = 0.0;
+
+        /* 根据电机的PID模式分发计算 */
+        switch (motor->pid_mode) {
+            case M3508_SPEEDPID_MODE:  // 速度环模式
+                motor->speed_pid.current = Int16_IIRFilter_Update(&motor->speed_pid.iir_filter, motor->speed);  // 滤波后的速度进环
+                output = PID_Compute(&motor->speed_pid);
+                break;
+
+            case M3508_POSITIONPID_MODE:  // 位置环模式
+                motor->position_pid.current = Int16_IIRFilter_Update(&motor->position_pid.iir_filter, motor->position);  // 滤波后的位置进环
+                output = PID_Loop_Compute(&motor->position_pid, 0, M3508_ENCODER_RESOLUTION);
+                break;
+
+            case M3508_CASCADE_MODE:  // 串级模式
+                motor->position_pid.current = Int16_IIRFilter_Update(&motor->position_pid.iir_filter, motor->position);
+                output = PID_Loop_Compute(&motor->position_pid, 0, M3508_ENCODER_RESOLUTION);
+                if (output >  motor->max_speed) output =  motor->max_speed;  // 内环目标限幅
+                if (output < -motor->max_speed) output = -motor->max_speed;
+                motor->speed_pid.target  = output;
+                motor->speed_pid.current = Int16_IIRFilter_Update(&motor->speed_pid.iir_filter, motor->speed);  // 内环用滤波后速度
+                output = PID_Compute(&motor->speed_pid);
+                break;
+        }
 
         /* 限幅到电流范围 [-16384, 16384] */
         if (output > M3508_CURRENT_MAX)  output = M3508_CURRENT_MAX;
@@ -278,4 +271,49 @@ void M3508_PositionPID_Update(M3508_CAN_All *m3508_can) {
     /* CAN 发送：一个 ID 控制一组 4 个电机 */
     M3508_SetCurrent(m3508_can, M3508_GROUP_LOW,  cur_low);
     M3508_SetCurrent(m3508_can, M3508_GROUP_HIGH, cur_high);
+}
+
+// ============================================================
+//  PID 模式切换,以及参数更新
+// ============================================================
+
+void M3508_PIDMode_Switch(M3508_HandleTypeDef *motor, M3508_PID_Mode mode) {
+
+    if (motor->pid_mode == mode || motor->status == M3508_OFF) {
+        return;
+    }
+    motor->pid_mode = mode;
+
+    // 消除积分项和上次误差
+    motor->speed_pid.integral = 0;
+    motor->speed_pid.last_error = 0;
+    motor->position_pid.integral = 0;
+    motor->position_pid.last_error = 0;
+    // 切换后旧环的滤波状态作废，重置（保留各自 alpha）
+    Int16_IIRFilter_Init(&motor->speed_pid.iir_filter, motor->speed_pid.iir_filter.filter_alpha);
+    Int16_IIRFilter_Init(&motor->position_pid.iir_filter, motor->position_pid.iir_filter.filter_alpha);
+}
+
+void M3508_PID_SetIntLim(M3508_HandleTypeDef *motor, M3508_PID_Mode mode, double integral_limit) {
+
+    if (mode == M3508_SPEEDPID_MODE) {
+        PID_SetIntLim(&motor->speed_pid, integral_limit);
+    }
+    else if (mode == M3508_POSITIONPID_MODE) {
+        PID_SetIntLim(&motor->position_pid, integral_limit);
+    }
+}
+
+// 设置指定 PID 环的低通滤波系数（0~1，1=直通不滤波）
+void M3508_IIRFilter_SetAlpha(M3508_HandleTypeDef *motor, M3508_PID_Mode mode, double alpha) {
+
+    if (motor == NULL) {
+        return;
+    }
+    if (mode == M3508_SPEEDPID_MODE) {
+        PID_IIRFilter_SetAlpha(&motor->speed_pid, alpha);
+    }
+    else if (mode == M3508_POSITIONPID_MODE) {
+        PID_IIRFilter_SetAlpha(&motor->position_pid, alpha);
+    }
 }

@@ -35,3 +35,5 @@ lza3508test\stm32h7xx_hal_flash_ex.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h
 lza3508test\stm32h7xx_hal_flash_ex.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_pwr_ex.h
 lza3508test\stm32h7xx_hal_flash_ex.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_tim.h
 lza3508test\stm32h7xx_hal_flash_ex.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_tim_ex.h
+lza3508test\stm32h7xx_hal_flash_ex.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_uart.h
+lza3508test\stm32h7xx_hal_flash_ex.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_uart_ex.h

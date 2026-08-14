@@ -1,4 +1,4 @@
- /* USER CODE BEGIN Header */
+/* USER CODE BEGIN Header */
 /**
   ******************************************************************************
   * @file           : main.c
@@ -20,12 +20,14 @@
 #include "main.h"
 #include "fdcan.h"
 #include "tim.h"
+#include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
 #include "m3508_driver.h"
+#include <stdio.h>
 
 /* USER CODE END Includes */
 
@@ -50,7 +52,8 @@
 
 double target_rpm[8] = {0}; // 创建一个数据数组
 volatile uint8_t tim_flag = 0; // 定时器标志位
-M3508_CAN_All m3508_can_1; 
+M3508_CAN_All m3508_can_1;
+char vofa_buf[64]; // VOFA帧缓冲
 
 /* USER CODE END PV */
 
@@ -68,6 +71,21 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if (htim->Instance == TIM1) { // 检查是否为定时器1的中断
         tim_flag = 1; // 设置定时器标志位
     }
+}
+
+// VOFA+ FireWater 遥测发送（每5个控制周期调用一次）
+void VOFA_Send(void) {
+    /* 上一帧 DMA 还没发完就跳过，防止覆盖正在发送的缓冲 */
+
+    int len = sprintf(vofa_buf, "%d,%d,%d,%d,%d\n",
+        (int)m3508_can_1.motors[5].position_pid.target,  // 预期位置
+        (int)m3508_can_1.motors[5].position,             // 当前位置
+        (int)m3508_can_1.motors[5].speed_pid.target,     // 预期速度（RPM）
+        (int)m3508_can_1.motors[5].speed_pid.iir_filter.filter_status,
+        (int)m3508_can_1.motors[5].current
+      );               // 当前速度
+
+    HAL_UART_Transmit_IT(&huart3, (uint8_t *)vofa_buf, len);
 }
 
 /* USER CODE END 0 */
@@ -104,17 +122,37 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_USART3_UART_Init();
   MX_FDCAN1_Init();
   MX_TIM1_Init();
+
   /* USER CODE BEGIN 2 */
 
+  /* 注意：MX_USART3_UART_Init 必须保持在 MX_FDCAN1_Init 之前！
+     USART3 的 MspInit（内核时钟选择+DMA 配置）若在 FDCAN 初始化之后执行，
+     会扰动已配置好的 FDCAN，导致收不到电机反馈、电机飞转。
+     CubeMX 重新生成后请检查初始化顺序是否被打乱！ */
   HAL_TIM_Base_Start_IT(&htim1); // 启动定时器1中断
+  // PID初始化和CAN初始化
+  M3508_CAN_Init(&m3508_can_1, (1 << 5), &hfdcan1); // 【串口单独测试】临时注释
+  M3508_SpeedPID_Init(&m3508_can_1, 4, 2, 0.02, 0.001);
+  M3508_PositionPID_Init(&m3508_can_1, 3.5, 0.05, 0.02, 0.001);
+  // 设置限幅
+  M3508_PID_SetIntLim(&m3508_can_1.motors[5], M3508_SPEEDPID_MODE, 400);  // 速度环限幅（RPM·s）
+  M3508_PID_SetIntLim(&m3508_can_1.motors[5], M3508_POSITIONPID_MODE, 500);  // 位置环限幅（计数·s）
+  // 设置滤波参数
+  M3508_IIRFilter_SetAlpha(&m3508_can_1.motors[5], M3508_SPEEDPID_MODE, 0.8);
+  M3508_IIRFilter_SetAlpha(&m3508_can_1.motors[5], M3508_POSITIONPID_MODE, 1);
 
-  M3508_CAN_Init(&m3508_can_1, (1 << 5), &hfdcan1);
-  M3508_PositionPID_Init(&m3508_can_1, 13, 0.0 , 0.05, 0.001);
   target_rpm[5] = 0;
+  // 设置目标位置（串级下内环速度目标由位置环输出给出，不再手动设置速度目标）
+  // M3508_SetSpeedTarget(&m3508_can_1, target_rpm);
   M3508_SetPositionTarget(&m3508_can_1, target_rpm);
-  HAL_FDCAN_Start(&hfdcan1); // 启动FDCAN模块
+  // 设置模式
+  M3508_PIDMode_Switch(&m3508_can_1.motors[5], M3508_CASCADE_MODE); // 串级模式测试
+  m3508_can_1.motors[5].max_speed = 350;  // 串级内环速度限幅（RPM）
+
+  HAL_FDCAN_Start(&hfdcan1); // 启动FDCAN模块 【串口单独测试】临时注释
 
   /* USER CODE END 2 */
 
@@ -125,11 +163,18 @@ int main(void)
     if (tim_flag) { // 检查定时器标志位
       tim_flag = 0; // 清除标志位
 
+      static uint8_t pos_init = 0;
+      if (!pos_init) {  // 首拍：位置目标吸附到当前位置，避免初始误差跳变
+        pos_init = 1;
+        target_rpm[5] = m3508_can_1.motors[5].position;
+      }
+      target_rpm[5] += 20;  // 位置目标每拍递增 45 计数（≈330 RPM 当量）
       if (target_rpm[5] > M3508_ENCODER_RESOLUTION) {
         target_rpm[5] -= M3508_ENCODER_RESOLUTION;
       }
       M3508_SetPositionTarget(&m3508_can_1, target_rpm);
-      M3508_PositionPID_Update(&m3508_can_1);
+      // VOFA_Send();
+      M3508_PID_Update(&m3508_can_1); // 【串口单独测试】临时注释
     }
     /* USER CODE END WHILE */
 

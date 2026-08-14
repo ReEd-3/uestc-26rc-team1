@@ -36,8 +36,13 @@ lza3508test\main.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_pwr.h
 lza3508test\main.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_pwr_ex.h
 lza3508test\main.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_tim.h
 lza3508test\main.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_tim_ex.h
+lza3508test\main.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_uart.h
+lza3508test\main.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_uart_ex.h
 lza3508test\main.o: ../Core/Inc/fdcan.h
 lza3508test\main.o: ../Core/Inc/tim.h
+lza3508test\main.o: ../Core/Inc/usart.h
 lza3508test\main.o: ../Core/Inc/gpio.h
 lza3508test\main.o: ../Core/Inc/m3508_driver.h
 lza3508test\main.o: ../Core/Inc/pid.h
+lza3508test\main.o: ../Core/Inc/iir.h
+lza3508test\main.o: D:\Emb_Sys\stm32_tools\keil5\ARM\ARMCC\Bin\..\include\stdio.h

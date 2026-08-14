@@ -35,6 +35,10 @@ lza3508test\m3508_driver.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_pw
 lza3508test\m3508_driver.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_pwr_ex.h
 lza3508test\m3508_driver.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_tim.h
 lza3508test\m3508_driver.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_tim_ex.h
+lza3508test\m3508_driver.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_uart.h
+lza3508test\m3508_driver.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_uart_ex.h
 lza3508test\m3508_driver.o: ../Core/Inc/fdcan_std.h
 lza3508test\m3508_driver.o: ../Core/Inc/m3508_driver.h
 lza3508test\m3508_driver.o: ../Core/Inc/pid.h
+lza3508test\m3508_driver.o: ../Core/Inc/iir.h
+lza3508test\m3508_driver.o: D:\Emb_Sys\stm32_tools\keil5\ARM\ARMCC\Bin\..\include\float.h
