@@ -12,6 +12,7 @@
 #define M3508_CONTROL_ID_LOW 0x200  // 1-4电机的控制帧id
 #define M3508_CONTROL_ID_HIGH 0x1FF  // 5-8电机的控制帧id
 
+// 电机使能状态
 typedef enum {
     M3508_OFF = 0,
     M3508_ON = 1
@@ -30,6 +31,7 @@ typedef enum {
     M3508_CASCADE_MODE = 2  // 串级模式
 } M3508_PID_Mode;
 
+// 电机句柄，包括不同的PID，电机自身信息
 typedef struct {
     FDCAN_HandleTypeDef *hfdcan;  // FDCAN句柄
     uint8_t status;  // 电机状态
@@ -44,10 +46,12 @@ typedef struct {
     double max_speed;  // 串级PID速度限幅
 } M3508_HandleTypeDef;
 
+// 总线句柄，表示总线上所有的电机
 typedef struct {
     FDCAN_HandleTypeDef *hfdcan;  // FDCAN句柄
     M3508_HandleTypeDef motors[8];  // 8个M3508电机的句柄数组
 } M3508_CAN_All;
+
 
 HAL_StatusTypeDef M3508_Init(M3508_HandleTypeDef *motor, FDCAN_HandleTypeDef *hfdcan, uint8_t can_id, M3508_PID_Mode mode, double max_speed);
 HAL_StatusTypeDef M3508_SetCurrent(M3508_CAN_All *m3508_can, M3508_Motor_Group group_id, int16_t *current);

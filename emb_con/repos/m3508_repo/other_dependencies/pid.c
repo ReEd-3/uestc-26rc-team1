@@ -36,7 +36,6 @@ double PID_Compute(PID_t *pid) {
     return pid->Kp * error + pid->Ki * pid->integral + pid->Kd * derivative;
 }
 
-// PID计算函数，适用于循环的量，比如电机的位置（360°等于0°）
 double PID_Loop_Compute(PID_t *pid, double high_lim, double low_lim) {
     if (high_lim < low_lim) {
         double temp = high_lim;
