@@ -78,3 +78,9 @@ void M3508_PID_SetIntLim(M3508_HandleTypeDef *motor, M3508_PID_Mode mode, double
 void M3508_IIRFilter_SetAlpha(M3508_HandleTypeDef *motor, M3508_PID_Mode mode, double alpha);  // 指定环的低通滤波系数设置（0~1，1=直通）
 
 #endif
+
+
+
+
+
+

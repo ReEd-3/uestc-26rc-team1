@@ -77,3 +77,9 @@ double PID_Loop_Compute(PID_t *pid, double high_lim, double low_lim) {
     pid->last_error = error;
     return pid->Kp * error + pid->Ki * pid->integral + pid->Kd * derivative;
 }
+
+
+
+
+
+
