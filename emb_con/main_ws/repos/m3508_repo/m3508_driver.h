@@ -50,8 +50,8 @@ typedef struct {
 typedef struct {
     FDCAN_HandleTypeDef *hfdcan;  // FDCAN句柄
     M3508_HandleTypeDef motors[8];  // 8个M3508电机的句柄数组
-    int16_t cur_high[4];
-    int16_t cur_low[4];
+    volatile int16_t cur_high[4];
+    volatile int16_t cur_low[4];
 } M3508_CAN_All;
 
 
