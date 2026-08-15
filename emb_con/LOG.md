@@ -21,3 +21,7 @@ ReEd-3:
 - 编写麦轮解算repo
 - 配置linux工作环境
 - 查验ROS串口节点代码
+
+beauty380:
+- 继续完善go
+- m3508freertos版本（串级）
