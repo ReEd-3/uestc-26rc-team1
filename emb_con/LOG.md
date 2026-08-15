@@ -25,3 +25,7 @@ ReEd-3:
 beauty380:
 - 继续完善go
 - m3508freertos版本（串级）
+
+UESTCShine
+- 测试大然电机驱动
+- 测试新的go驱动库
