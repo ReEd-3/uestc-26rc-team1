@@ -9,7 +9,7 @@ Base::Base(const std::string & node_name)
 {
   // 参数声明与获取
   this->declare_parameter<std::string>("port_name", "ttyUSB0");
-  this->declare_parameter<int>("baudrate", 115200);
+  this->declare_parameter<int>("baudrate", 115200);  // 波特率设置115200
   this->declare_parameter<bool>("auto_stop_on", true);
 
   this->get_parameter("port_name", port_name_);

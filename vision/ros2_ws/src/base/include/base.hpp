@@ -13,12 +13,12 @@
 class Base : public rclcpp::Node
 {
 public:
-  explicit Base(const std::string & node_name = "base");
-  ~Base();
+  explicit Base(const std::string & node_name = "base");  // 构造函数，禁用隐式转换
+  ~Base();  // 析构函数
 
 private:
   // 回调
-  void cmd_vel_callback(const geometry_msgs::msg::Twist::SharedPtr msg);
+  void cmd_vel_callback(const geometry_msgs::msg::Twist::SharedPtr msg);  // 传入消息为共享指针
   void timer_callback();
 
   // 串口发送
