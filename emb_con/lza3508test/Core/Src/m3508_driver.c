@@ -346,3 +346,11 @@ void M3508_IIRFilter_SetAlpha(M3508_HandleTypeDef *motor, M3508_PID_Mode mode, d
         PID_IIRFilter_SetAlpha(&motor->position_pid, alpha);
     }
 }
+
+
+
+
+
+
+
+

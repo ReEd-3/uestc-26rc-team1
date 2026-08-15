@@ -10,3 +10,6 @@ HAL_StatusTypeDef HAL_FDCAN_Std_SendMessage(FDCAN_TxHeaderTypeDef *header, FDCAN
 HAL_StatusTypeDef HAL_FDCAN_Std_ReceiveMessage(FDCAN_RxHeaderTypeDef *header, FDCAN_HandleTypeDef *hfdcan, uint32_t fifo_id, uint8_t *data);
 
 #endif /* FDCAN_STD_H */
+
+
+
