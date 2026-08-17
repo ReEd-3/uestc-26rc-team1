@@ -113,7 +113,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   /* 初始化电机：UART9，方向脚 PF14，电机ID=1 */
-  GO8010_Motor_Init(&motor, &huart9, GPIOF, GPIO_PIN_14, 1);
+  GO8010_Motor_Init(&motor, &huart9, GPIOF, GPIO_PIN_14, 4);
   /* USER CODE END 2 */
 
   /* Infinite loop */
