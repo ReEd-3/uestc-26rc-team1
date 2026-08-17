@@ -1,0 +1,23 @@
+# Build 目录
+build/
+Debug/
+Release/
+
+# IDE 设置
+.settings/
+.cproject
+.project
+.metadata/
+
+# 编译中间文件
+*.o
+*.d
+*.elf
+*.hex
+*.bin
+*.map
+
+# 临时文件
+*.bak
+*.tmp
+*~
