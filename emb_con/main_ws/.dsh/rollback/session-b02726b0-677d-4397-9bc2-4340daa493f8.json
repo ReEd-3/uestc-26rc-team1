@@ -1,0 +1,395 @@
+{
+  "version": 2,
+  "sessionId": "session-b02726b0-677d-4397-9bc2-4340daa493f8",
+  "cwd": "/run/media/lw3/新加卷/Emb_Sys/projects/26rcteam1/emb_con/main_ws",
+  "updatedAt": 1786991895832,
+  "checkpoints": [
+    {
+      "turn": 1,
+      "commit": "7348647fefa6d990e2913c6f153d9b25480300ad",
+      "parent": "530652f04eb96b0203408cf1f7762bbf6b94fd72",
+      "time": 1786972789770,
+      "untracked": [
+        "repos/chassis_repo/chassis_task_1.c",
+        "repos/chassis_repo/chassis_task_1.h"
+      ],
+      "truncated": false,
+      "after": {
+        "commit": "20bec99badbeb6c68a83e220d3dcde07c32c8de9",
+        "time": 1786973015378
+      }
+    },
+    {
+      "turn": 2,
+      "commit": "6b718b8d7a63de35ee21290d84dd90f2d07d591b",
+      "parent": "20bec99badbeb6c68a83e220d3dcde07c32c8de9",
+      "time": 1786973525839,
+      "untracked": [
+        ".dsh/rollback/session-b02726b0-677d-4397-9bc2-4340daa493f8.json",
+        "repos/chassis_repo/chassis_task_1.c",
+        "repos/chassis_repo/chassis_task_1.h",
+        "repos/chassis_repo/interact_cmds.c",
+        "repos/chassis_repo/interact_cmds.h"
+      ],
+      "truncated": false,
+      "after": {
+        "commit": "52180a28cc8c084a2e1ca6af3e5b29be50df848c",
+        "time": 1786974167310
+      }
+    },
+    {
+      "turn": 3,
+      "commit": "478e2afa161acf798a0dadc995aab31c5d11d299",
+      "parent": "52180a28cc8c084a2e1ca6af3e5b29be50df848c",
+      "time": 1786975367179,
+      "untracked": [
+        ".dsh/rollback/session-b02726b0-677d-4397-9bc2-4340daa493f8.json",
+        "repos/chassis_repo/chassis_task_1.c",
+        "repos/chassis_repo/chassis_task_1.h",
+        "repos/chassis_repo/interact_cmds.c",
+        "repos/chassis_repo/interact_cmds.h",
+        "repos/chassis_repo/uart_interact.c",
+        "repos/chassis_repo/uart_interact.h"
+      ],
+      "truncated": false,
+      "after": {
+        "commit": "b83003f90d31a7f5d3d28f9900b70c97a74e16ff",
+        "time": 1786975520980
+      }
+    },
+    {
+      "turn": 4,
+      "commit": "b83003f90d31a7f5d3d28f9900b70c97a74e16ff",
+      "parent": "b83003f90d31a7f5d3d28f9900b70c97a74e16ff",
+      "time": 1786975912057,
+      "untracked": [
+        ".dsh/rollback/session-b02726b0-677d-4397-9bc2-4340daa493f8.json",
+        "repos/chassis_repo/chassis_task_1.c",
+        "repos/chassis_repo/chassis_task_1.h",
+        "repos/chassis_repo/interact_cmds.c",
+        "repos/chassis_repo/interact_cmds.h",
+        "repos/chassis_repo/uart_interact.c",
+        "repos/chassis_repo/uart_interact.h"
+      ],
+      "truncated": false,
+      "after": {
+        "commit": "07a2b89e8aa376ce0f44c3a225fa15df97ea0717",
+        "time": 1786976956950
+      }
+    },
+    {
+      "turn": 5,
+      "commit": "0c155707a252c74aeea4e1c689f205a3b52fd769",
+      "parent": "07a2b89e8aa376ce0f44c3a225fa15df97ea0717",
+      "time": 1786978249873,
+      "untracked": [
+        ".dsh/rollback/session-b02726b0-677d-4397-9bc2-4340daa493f8.json",
+        "repos/chassis_repo/chassis_task_1.c",
+        "repos/chassis_repo/chassis_task_1.h",
+        "repos/chassis_repo/interact_cmds.c",
+        "repos/chassis_repo/interact_cmds.h",
+        "repos/chassis_repo/uart_interact.c",
+        "repos/chassis_repo/uart_interact.h"
+      ],
+      "truncated": false,
+      "after": {
+        "commit": "80c61651286e884609fe73dc587ac1dd90b6a48a",
+        "time": 1786979162380
+      }
+    },
+    {
+      "turn": 6,
+      "commit": "2341d295a7a13cbae5078260b6b9d29e5c91a514",
+      "parent": "80c61651286e884609fe73dc587ac1dd90b6a48a",
+      "time": 1786979497251,
+      "untracked": [
+        ".dsh/rollback/session-b02726b0-677d-4397-9bc2-4340daa493f8.json",
+        "repos/chassis_repo/chassis_task_1.c",
+        "repos/chassis_repo/chassis_task_1.h",
+        "repos/chassis_repo/interact_cmds.c",
+        "repos/chassis_repo/interact_cmds.h",
+        "repos/chassis_repo/uart_interact.c",
+        "repos/chassis_repo/uart_interact.h"
+      ],
+      "truncated": false,
+      "after": {
+        "commit": "d4c59f2afe40ac99e917e1e987356a44527a1ea8",
+        "time": 1786979745675
+      }
+    },
+    {
+      "turn": 7,
+      "commit": "471b5f6e428ec29cca7afc3b21a7e39547523103",
+      "parent": "d4c59f2afe40ac99e917e1e987356a44527a1ea8",
+      "time": 1786980910609,
+      "untracked": [
+        ".dsh/rollback/session-b02726b0-677d-4397-9bc2-4340daa493f8.json",
+        "repos/chassis_repo/chassis_task_1.c",
+        "repos/chassis_repo/chassis_task_1.h",
+        "repos/chassis_repo/interact_cmds.c",
+        "repos/chassis_repo/interact_cmds.h",
+        "repos/chassis_repo/uart_interact.c",
+        "repos/chassis_repo/uart_interact.h"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 8,
+      "commit": "471b5f6e428ec29cca7afc3b21a7e39547523103",
+      "parent": "471b5f6e428ec29cca7afc3b21a7e39547523103",
+      "time": 1786981947727,
+      "untracked": [
+        ".dsh/rollback/session-b02726b0-677d-4397-9bc2-4340daa493f8.json",
+        "repos/chassis_repo/chassis_task_1.c",
+        "repos/chassis_repo/chassis_task_1.h",
+        "repos/chassis_repo/interact_cmds.c",
+        "repos/chassis_repo/interact_cmds.h",
+        "repos/chassis_repo/uart_interact.c",
+        "repos/chassis_repo/uart_interact.h"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 9,
+      "commit": "837cc0b1afad316da10099a701c79893b9791776",
+      "parent": "471b5f6e428ec29cca7afc3b21a7e39547523103",
+      "time": 1786984179147,
+      "untracked": [
+        ".dsh/rollback/session-b02726b0-677d-4397-9bc2-4340daa493f8.json",
+        "repos/chassis_repo/chassis_task_1.c",
+        "repos/chassis_repo/chassis_task_1.h",
+        "repos/chassis_repo/interact_cmds.c",
+        "repos/chassis_repo/interact_cmds.h",
+        "repos/chassis_repo/uart_interact.c",
+        "repos/chassis_repo/uart_interact.h"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 10,
+      "commit": "c417c2dbef76fcbbe3495164e4fd0ea7ed35f633",
+      "parent": "837cc0b1afad316da10099a701c79893b9791776",
+      "time": 1786985259977,
+      "untracked": [
+        ".dsh/rollback/session-b02726b0-677d-4397-9bc2-4340daa493f8.json",
+        "repos/chassis_repo/chassis_task_1.c",
+        "repos/chassis_repo/chassis_task_1.h",
+        "repos/chassis_repo/interact_cmds.c",
+        "repos/chassis_repo/interact_cmds.h",
+        "repos/chassis_repo/uart_interact.c",
+        "repos/chassis_repo/uart_interact.h"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 11,
+      "commit": "7b89f11491bb26a885917ce822d114e8422ae44b",
+      "parent": "c417c2dbef76fcbbe3495164e4fd0ea7ed35f633",
+      "time": 1786986966424,
+      "untracked": [
+        ".dsh/rollback/session-b02726b0-677d-4397-9bc2-4340daa493f8.json",
+        "repos/chassis_repo/chassis_task_1.c",
+        "repos/chassis_repo/chassis_task_1.h",
+        "repos/chassis_repo/interact_cmds.c",
+        "repos/chassis_repo/interact_cmds.h",
+        "repos/chassis_repo/uart_interact.c",
+        "repos/chassis_repo/uart_interact.h"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 12,
+      "commit": "6deecb829fe0673346af58f0f2877cb02dba8ef2",
+      "parent": "7b89f11491bb26a885917ce822d114e8422ae44b",
+      "time": 1786987738188,
+      "untracked": [
+        ".dsh/rollback/session-b02726b0-677d-4397-9bc2-4340daa493f8.json",
+        "repos/chassis_repo/chassis_task_1.c",
+        "repos/chassis_repo/chassis_task_1.h",
+        "repos/chassis_repo/interact_cmds.c",
+        "repos/chassis_repo/interact_cmds.h",
+        "repos/chassis_repo/uart_interact.c",
+        "repos/chassis_repo/uart_interact.h"
+      ],
+      "truncated": false,
+      "after": {
+        "commit": "dc6c67a0e78b5ae25f348f2669da2972d10593e1",
+        "time": 1786987916308
+      }
+    },
+    {
+      "turn": 13,
+      "commit": "bfd701849205b1857c7c9085794e1d829dc61c56",
+      "parent": "dc6c67a0e78b5ae25f348f2669da2972d10593e1",
+      "time": 1786988355318,
+      "untracked": [
+        ".dsh/rollback/session-b02726b0-677d-4397-9bc2-4340daa493f8.json",
+        "repos/chassis_repo/chassis_task_1.c",
+        "repos/chassis_repo/chassis_task_1.h",
+        "repos/chassis_repo/interact_cmds.c",
+        "repos/chassis_repo/interact_cmds.h",
+        "repos/chassis_repo/uart_interact.c",
+        "repos/chassis_repo/uart_interact.h"
+      ],
+      "truncated": false,
+      "after": {
+        "commit": "762d5f195920b5f0b891b65b0e1efa6567472d69",
+        "time": 1786988497024
+      }
+    },
+    {
+      "turn": 14,
+      "commit": "ca93f68489b80e70ff61acd3147c524e51f4e2b8",
+      "parent": "762d5f195920b5f0b891b65b0e1efa6567472d69",
+      "time": 1786988698286,
+      "untracked": [
+        ".dsh/rollback/session-b02726b0-677d-4397-9bc2-4340daa493f8.json",
+        "repos/chassis_repo/chassis_task_1.c",
+        "repos/chassis_repo/chassis_task_1.h",
+        "repos/chassis_repo/interact_cmds.c",
+        "repos/chassis_repo/interact_cmds.h",
+        "repos/chassis_repo/uart_interact.c",
+        "repos/chassis_repo/uart_interact.h"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 15,
+      "commit": "28a2cd3bd8bb2de2ce5c5247000356eb723d39da",
+      "parent": "ca93f68489b80e70ff61acd3147c524e51f4e2b8",
+      "time": 1786989520101,
+      "untracked": [
+        ".dsh/rollback/session-b02726b0-677d-4397-9bc2-4340daa493f8.json",
+        "repos/chassis_repo/chassis_task_1.c",
+        "repos/chassis_repo/chassis_task_1.h",
+        "repos/chassis_repo/interact_cmds.c",
+        "repos/chassis_repo/interact_cmds.h",
+        "repos/chassis_repo/uart_interact.c",
+        "repos/chassis_repo/uart_interact.h"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 16,
+      "commit": "216389e4604540bd96f9b08d937acaa36dddeb8b",
+      "parent": "28a2cd3bd8bb2de2ce5c5247000356eb723d39da",
+      "time": 1786989983065,
+      "untracked": [
+        ".dsh/rollback/session-b02726b0-677d-4397-9bc2-4340daa493f8.json",
+        "repos/chassis_repo/chassis_task_1.c",
+        "repos/chassis_repo/chassis_task_1.h",
+        "repos/chassis_repo/interact_cmds.c",
+        "repos/chassis_repo/interact_cmds.h",
+        "repos/chassis_repo/uart_interact.c",
+        "repos/chassis_repo/uart_interact.h"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 17,
+      "commit": "602c0451fc557696c09ed368c73b718689978632",
+      "parent": "216389e4604540bd96f9b08d937acaa36dddeb8b",
+      "time": 1786990168204,
+      "untracked": [
+        ".dsh/rollback/session-b02726b0-677d-4397-9bc2-4340daa493f8.json",
+        "repos/chassis_repo/chassis_task_1.c",
+        "repos/chassis_repo/chassis_task_1.h",
+        "repos/chassis_repo/interact_cmds.c",
+        "repos/chassis_repo/interact_cmds.h",
+        "repos/chassis_repo/uart_interact.c",
+        "repos/chassis_repo/uart_interact.h"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 18,
+      "commit": "602c0451fc557696c09ed368c73b718689978632",
+      "parent": "602c0451fc557696c09ed368c73b718689978632",
+      "time": 1786990277985,
+      "untracked": [
+        ".dsh/rollback/session-b02726b0-677d-4397-9bc2-4340daa493f8.json",
+        "repos/chassis_repo/chassis_task_1.c",
+        "repos/chassis_repo/chassis_task_1.h",
+        "repos/chassis_repo/interact_cmds.c",
+        "repos/chassis_repo/interact_cmds.h",
+        "repos/chassis_repo/uart_interact.c",
+        "repos/chassis_repo/uart_interact.h"
+      ],
+      "truncated": false,
+      "after": {
+        "commit": "cea0bd6faf1919892c8e4f176e997257bf4b4ade",
+        "time": 1786990408734
+      }
+    },
+    {
+      "turn": 19,
+      "commit": "3aea292037d21a2a4df1f7cb6d3f7f5cfb1def84",
+      "parent": "cea0bd6faf1919892c8e4f176e997257bf4b4ade",
+      "time": 1786990717349,
+      "untracked": [
+        ".dsh/rollback/session-b02726b0-677d-4397-9bc2-4340daa493f8.json",
+        "repos/chassis_repo/chassis_task_1.c",
+        "repos/chassis_repo/chassis_task_1.h",
+        "repos/chassis_repo/interact_cmds.c",
+        "repos/chassis_repo/interact_cmds.h",
+        "repos/chassis_repo/uart_interact.c",
+        "repos/chassis_repo/uart_interact.h"
+      ],
+      "truncated": false,
+      "after": {
+        "commit": "7d29a5d50b4043f66a0c6c8760276f28fed9968d",
+        "time": 1786991577157
+      }
+    },
+    {
+      "turn": 20,
+      "commit": "7d29a5d50b4043f66a0c6c8760276f28fed9968d",
+      "parent": "7d29a5d50b4043f66a0c6c8760276f28fed9968d",
+      "time": 1786991652623,
+      "untracked": [
+        ".dsh/rollback/session-b02726b0-677d-4397-9bc2-4340daa493f8.json",
+        "repos/chassis_repo/chassis_task_1.c",
+        "repos/chassis_repo/chassis_task_1.h",
+        "repos/chassis_repo/interact_cmds.c",
+        "repos/chassis_repo/interact_cmds.h",
+        "repos/chassis_repo/uart_interact.c",
+        "repos/chassis_repo/uart_interact.h"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 21,
+      "commit": "bba9cfa45fe6ab550152fa7313c6ebd69b203c1a",
+      "parent": "7d29a5d50b4043f66a0c6c8760276f28fed9968d",
+      "time": 1786991748029,
+      "untracked": [
+        ".dsh/rollback/session-b02726b0-677d-4397-9bc2-4340daa493f8.json",
+        "repos/chassis_repo/chassis_task_1.c",
+        "repos/chassis_repo/chassis_task_1.h",
+        "repos/chassis_repo/interact_cmds.c",
+        "repos/chassis_repo/interact_cmds.h",
+        "repos/chassis_repo/uart_interact.c",
+        "repos/chassis_repo/uart_interact.h"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 22,
+      "commit": "bba9cfa45fe6ab550152fa7313c6ebd69b203c1a",
+      "parent": "bba9cfa45fe6ab550152fa7313c6ebd69b203c1a",
+      "time": 1786991894990,
+      "untracked": [
+        ".dsh/rollback/session-b02726b0-677d-4397-9bc2-4340daa493f8.json",
+        "repos/chassis_repo/chassis_task_1.c",
+        "repos/chassis_repo/chassis_task_1.h",
+        "repos/chassis_repo/interact_cmds.c",
+        "repos/chassis_repo/interact_cmds.h",
+        "repos/chassis_repo/uart_interact.c",
+        "repos/chassis_repo/uart_interact.h"
+      ],
+      "truncated": false
+    }
+  ],
+  "rolls": [],
+  "undos": []
+}

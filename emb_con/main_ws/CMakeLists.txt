@@ -71,4 +71,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     m3508
     macnum
     chassis
+
+    # libm 必须放在所有静态库之后，否则 chassis/macnum 里的 cos/sin 无法解析
+    "-lm"
 )

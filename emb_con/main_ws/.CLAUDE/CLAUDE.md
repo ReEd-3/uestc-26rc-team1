@@ -35,17 +35,8 @@
 
 ## FreeRTOS 任务架构
 
-### 已定：底盘运动（方案B）
-- 任务创建用 CubeMX 骨架（osThreadNew），队列/信号量/任务通知等同步原语用原生 FreeRTOS API
-- TIM 1kHz 中断只调 xSemaphoreGiveFromISR（计数信号量），中断优先级设 5~6（调 FromISR 函数必须 ≥ configMAX_SYSCALL_INTERRUPT_PRIORITY = 5）
-- chassis_ctrl_task：阻塞等信号量，1kHz 执行 M3508_PID_Update（读反馈+速度环）→ 里程计积分（方式未定，待实测速度区间后决定）→ 位置环 PID → M3508_CAN_CurrentUpdate（发 CAN）；信号量计数 >1 表示任务迟到，用于丢拍监控
-- comm_task：USART 收上位机指令（目标距离/当前距离），队列传给 chassis_ctrl_task，回传里程计状态
-- 电机反馈：驱动内轮询 FDCAN RxBuffer，无 FDCAN RX 中断
-- 雷达：挂主机，主机计算目标/当前距离发 USART，单片机做位置 PID 修正
-
 ### 待定
 - USART 通信协议帧格式
-- 里程计方式（编码器差分/速度积分，待实测速度区间后决定）
 - 机械臂（M3508 伸缩、GO8010/DrEmpower 关节）、吸盘电磁阀的任务划分
 - 位置环运行频率（1kHz 或 200Hz）
 - 监控任务（心跳/喂狗/上位机断联急停）

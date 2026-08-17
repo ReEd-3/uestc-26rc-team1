@@ -1,5 +1,8 @@
 add_library(chassis STATIC
     chassis.c
+    chassis_task_1.c
+    uart_interact.c
+    interact_cmds.c
 )
 
 target_include_directories(chassis PUBLIC

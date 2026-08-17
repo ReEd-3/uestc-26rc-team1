@@ -19,14 +19,19 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "FreeRTOS.h"
+#include "chassis.h"
 #include "cmsis_os2.h"
 #include "fdcan.h"
+#include "stm32h7xx_hal_uart.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+
+#include "uart_interact.h"
+#include <stdint.h>
 
 /* USER CODE END Includes */
 
@@ -62,6 +67,41 @@ void MX_FREERTOS_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+static void uart_tx_hook(const uint8_t *data, uint16_t len) {
+  HAL_UART_Transmit(&huart3, (uint8_t *)data, len, 100u);
+}
+
+// 底盘和电机总线句柄
+Chassis ch;
+M3508_CAN_All m3508;
+
+// 底盘配置
+Chassis_Config cfg = {1, 1, 1, M3508_GEAR_RATIO, 
+  0.001, 
+  1, 1, 1, 
+  1, 1, 1,
+  1, 1, 1,
+  1, 1
+};
+
+// 底盘任务
+Chassis_Task1 t1; 
+UartInteract it;
+
+// 通信搬运字节
+volatile uint8_t rx_byte = 0;
+
+// 通信队列
+extern osMessageQueueId_t CmdQueueTask1Handle;
+extern osThreadId_t ChassisMainTaskHandle;
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+  if (huart->Instance == USART3) {
+    osMessageQueuePut(CmdQueueTask1Handle, (uint8_t *)&rx_byte, 0U, 0U);  // 把收到的字节压进队尾
+    HAL_UART_Receive_IT(&huart3, (uint8_t *)&rx_byte, 1u);  // 继续接收串口字节
+  }
+}
 
 /* USER CODE END 0 */
 
@@ -107,6 +147,17 @@ int main(void)
   MX_TIM2_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
+
+  // 启动定时器
+  HAL_TIM_Base_Start_IT(&htim1);
+
+  // 启动串口交互
+  HAL_UART_Receive_IT(&huart3, (uint8_t *)&rx_byte, 1u);
+
+  // 初始化
+  Chassis_Init(&ch, &m3508, &cfg);
+  Chassis_Task1_Init(&t1, &ch);
+  UartInteract_Init(&it, &ch, &t1, uart_tx_hook);
 
   /* USER CODE END 2 */
 
@@ -266,7 +317,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
-
+  else if (htim->Instance == TIM1) {
+    if (ChassisMainTaskHandle != NULL) {
+      osThreadFlagsSet(ChassisMainTaskHandle, 0x01u);
+    }
+  }
   /* USER CODE END Callback 1 */
 }
 

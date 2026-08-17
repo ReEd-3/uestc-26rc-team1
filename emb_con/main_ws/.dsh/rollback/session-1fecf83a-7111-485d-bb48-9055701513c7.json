@@ -2,7 +2,7 @@
   "version": 2,
   "sessionId": "session-1fecf83a-7111-485d-bb48-9055701513c7",
   "cwd": "/run/media/lw3/新加卷/Emb_Sys/projects/26rcteam1/emb_con/main_ws",
-  "updatedAt": 1786949455286,
+  "updatedAt": 1786972675403,
   "checkpoints": [
     {
       "turn": 1,
@@ -285,6 +285,95 @@
         "commit": "eb211701c41235ecf8b73ff21cf3f86fc25e51b7",
         "time": 1786949454494
       }
+    },
+    {
+      "turn": 18,
+      "commit": "16775e4a26607cc99a5ec88eb4035331249fc561",
+      "parent": "eb211701c41235ecf8b73ff21cf3f86fc25e51b7",
+      "time": 1786952857780,
+      "untracked": [],
+      "truncated": false
+    },
+    {
+      "turn": 19,
+      "commit": "4439779938f7e6a7ed0675ebb7f689dc69fb9c79",
+      "parent": "16775e4a26607cc99a5ec88eb4035331249fc561",
+      "time": 1786955577809,
+      "untracked": [],
+      "truncated": false
+    },
+    {
+      "turn": 20,
+      "commit": "4439779938f7e6a7ed0675ebb7f689dc69fb9c79",
+      "parent": "4439779938f7e6a7ed0675ebb7f689dc69fb9c79",
+      "time": 1786956502233,
+      "untracked": [],
+      "truncated": false
+    },
+    {
+      "turn": 21,
+      "commit": "e5a20337323836ec2e0f029c3ed4f6caebf5ef5a",
+      "parent": "4439779938f7e6a7ed0675ebb7f689dc69fb9c79",
+      "time": 1786956845306,
+      "untracked": [],
+      "truncated": false
+    },
+    {
+      "turn": 22,
+      "commit": "e5a20337323836ec2e0f029c3ed4f6caebf5ef5a",
+      "parent": "e5a20337323836ec2e0f029c3ed4f6caebf5ef5a",
+      "time": 1786956858234,
+      "untracked": [],
+      "truncated": false,
+      "after": {
+        "commit": "6ceee9496ed530638c7bec48467de6dd2e8a261d",
+        "time": 1786957062228
+      }
+    },
+    {
+      "turn": 23,
+      "commit": "a0fc2e97443c900be24002f5c11256fe046dfeb3",
+      "parent": "6ceee9496ed530638c7bec48467de6dd2e8a261d",
+      "time": 1786958861480,
+      "untracked": [],
+      "truncated": false
+    },
+    {
+      "turn": 24,
+      "commit": "2aba132c23820f1f4848b09bf224caa1fe268cff",
+      "parent": "a0fc2e97443c900be24002f5c11256fe046dfeb3",
+      "time": 1786965221990,
+      "untracked": [
+        "repos/chassis_repo/chassis_task_1.c",
+        "repos/chassis_repo/chassis_task_1.h"
+      ],
+      "truncated": false,
+      "after": {
+        "commit": "d06a866cfd0d9cbfdd96e2e2773e0b4e7fe5042b",
+        "time": 1786965510298
+      }
+    },
+    {
+      "turn": 25,
+      "commit": "d06a866cfd0d9cbfdd96e2e2773e0b4e7fe5042b",
+      "parent": "d06a866cfd0d9cbfdd96e2e2773e0b4e7fe5042b",
+      "time": 1786972510471,
+      "untracked": [
+        "repos/chassis_repo/chassis_task_1.c",
+        "repos/chassis_repo/chassis_task_1.h"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 26,
+      "commit": "d06a866cfd0d9cbfdd96e2e2773e0b4e7fe5042b",
+      "parent": "d06a866cfd0d9cbfdd96e2e2773e0b4e7fe5042b",
+      "time": 1786972674580,
+      "untracked": [
+        "repos/chassis_repo/chassis_task_1.c",
+        "repos/chassis_repo/chassis_task_1.h"
+      ],
+      "truncated": false
     }
   ],
   "rolls": [],

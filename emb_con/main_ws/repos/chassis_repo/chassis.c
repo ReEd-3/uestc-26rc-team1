@@ -36,24 +36,30 @@ void Chassis_Init(Chassis *ch, M3508_CAN_All *m3508, const Chassis_Config *cfg)
         return;
     }
 
+    // 电机总线
     ch->m3508 = m3508;
+
+    // 麦轮初始化
     Macnum_Init(&ch->mn,
                 cfg->wheel_radius,
                 cfg->half_wheelbase,
                 cfg->half_track,
                 cfg->gear_ratio);
 
+    // 初始底盘停止
     ch->mode = CHASSIS_MODE_STOP;
 
+    // 控制周期，速度限幅，误差范围
+    ch->dt = cfg->dt;
     ch->max_vx = cfg->max_vx;
     ch->max_vy = cfg->max_vy;
     ch->max_omega = cfg->max_omega;
     ch->tol_xy = cfg->tol_xy;
     ch->tol_yaw = cfg->tol_yaw;
 
-    PID_Init(&ch->pid_x, cfg->pos_kp, cfg->pos_ki, cfg->pos_kd, 0.001);
-    PID_Init(&ch->pid_y, cfg->pos_kp, cfg->pos_ki, cfg->pos_kd, 0.001);
-    PID_Init(&ch->pid_yaw, cfg->yaw_kp, cfg->yaw_ki, cfg->yaw_kd, 0.001);
+    PID_Init(&ch->pid_x, cfg->pos_kp, cfg->pos_ki, cfg->pos_kd, cfg->dt);
+    PID_Init(&ch->pid_y, cfg->pos_kp, cfg->pos_ki, cfg->pos_kd, cfg->dt);
+    PID_Init(&ch->pid_yaw, cfg->yaw_kp, cfg->yaw_ki, cfg->yaw_kd, cfg->dt);
 }
 
 /* 直接设置当前全局位姿，用于外部给定起点坐标 */
@@ -146,23 +152,29 @@ void Chassis_Stop(Chassis *ch)
 }
 
 /* 每个控制周期调用一次：更新里程计并输出电机速度环目标 */
-void Chassis_Update(Chassis *ch, uint16_t *encoder_raw, double dt)
+void Chassis_Update(Chassis *ch)
 {
-    if (ch == NULL || ch->m3508 == NULL || encoder_raw == NULL) {
+    if (ch == NULL || ch->m3508 == NULL) {
         return;
     }
 
+    // 先执行更新PID输出，读取到当前的电机值
+    M3508_PID_Update(ch->m3508);
+    uint16_t encoder_raw[4] = {
+        ch->m3508->motors[0].position,
+        ch->m3508->motors[1].position,
+        ch->m3508->motors[2].position,
+        ch->m3508->motors[3].position
+    };
+
     /* 更新里程计，rea_x/rea_y/yaw 会更新 */
     Macnum_PositionStateUpdate(&ch->mn, encoder_raw);
-
-    if (dt <= 0.0) {
-        dt = 0.001;
-    }
 
     double vx_cmd = 0.0;
     double vy_cmd = 0.0;
     double omega_cmd = 0.0;
 
+    // 计算PID
     switch (ch->mode) {
         case CHASSIS_MODE_VELOCITY:
             vx_cmd = ch->tar_vx;
@@ -173,9 +185,9 @@ void Chassis_Update(Chassis *ch, uint16_t *encoder_raw, double dt)
         case CHASSIS_MODE_RELATIVE_MOVE:
         case CHASSIS_MODE_ABSOLUTE_MOVE:
         {
-            ch->pid_x.dt = dt;
-            ch->pid_y.dt = dt;
-            ch->pid_yaw.dt = dt;
+            ch->pid_x.dt = ch->dt;
+            ch->pid_y.dt = ch->dt;
+            ch->pid_yaw.dt = ch->dt;
 
             double err_x = ch->target_x - ch->mn.rea_x;
             double err_y = ch->target_y - ch->mn.rea_y;
@@ -220,7 +232,7 @@ void Chassis_Update(Chassis *ch, uint16_t *encoder_raw, double dt)
     /* 目标速度 -> 四个轮子 rpm -> 电机速度环 */
     Macnum_SetTarget(&ch->mn, vx_cmd, vy_cmd, omega_cmd);
     M3508_SetSpeedTarget(ch->m3508, ch->mn.tar_rpm);
-    M3508_PID_Update(ch->m3508);
+
     M3508_CAN_CurrentUpdate(ch->m3508);
 }
 

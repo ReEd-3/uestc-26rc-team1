@@ -19,6 +19,8 @@ typedef struct {
     double half_track;       // 轮距的一半
     double gear_ratio;       // 电机减速比
 
+    double dt;               // 控制周期，单位 s，例如 0.001
+
     double max_vx;           // 最大前进速度
     double max_vy;           // 最大横移速度
     double max_omega;        // 最大自转角速度
@@ -42,6 +44,7 @@ typedef struct {
     // 位置模式目标（统一保存为绝对目标）
     double target_x, target_y, target_yaw;
 
+    double dt;               // 底盘PID控制周期，单位 s
     double max_vx, max_vy, max_omega;
     double tol_xy, tol_yaw;
 
@@ -55,7 +58,7 @@ void Chassis_SetVelocity(Chassis *ch, double vx, double vy, double omega);
 void Chassis_MoveRelative(Chassis *ch, double dx, double dy, double dyaw);
 void Chassis_MoveAbsolute(Chassis *ch, double x, double y, double yaw);
 void Chassis_Stop(Chassis *ch);
-void Chassis_Update(Chassis *ch, uint16_t *encoder_raw, double dt);
+void Chassis_Update(Chassis *ch);
 uint8_t Chassis_Arrived(Chassis *ch);
 
 #endif
