@@ -46,3 +46,7 @@ UESTCShine:
 ReEd-3:
 - 测试上位机串口收发功能，学习c++开发STM32并尝试c++重封装STM32串口收发工程
 - 解决vscode ssh到上位机语言服务器出的小问题，还有USB连接permission denied的问题
+
+### 8.17
+hyhq12345：
+-调试速度环，发现了基于dsh的彻底解决兼容性问题的方法
