@@ -1,0 +1,131 @@
+{
+  "version": 2,
+  "sessionId": "session-aa4c4e04-805b-4e91-8049-a7a9119b4a5a",
+  "cwd": "/run/media/lw3/新加卷/Emb_Sys/projects/26rcteam1/emb_con/main_ws",
+  "updatedAt": 1786934745222,
+  "checkpoints": [
+    {
+      "turn": 1,
+      "commit": "0a0b6c40583f2aedbb31f91af68e19f18ca7c1ed",
+      "parent": "875b30fda71bd876f879f2bbe86f6ad2bd94b555",
+      "time": 1786930436179,
+      "untracked": [
+        ".dsh/rollback/session-1fecf83a-7111-485d-bb48-9055701513c7.json",
+        ".dsh/rollback/session-7a6bdc60-7e8f-4af7-8c3e-d373147ad888.json",
+        "repos/chassis_repo/chassis.c",
+        "repos/chassis_repo/chassis.h",
+        "repos/chassis_repo/odometry.c",
+        "repos/chassis_repo/odometry.h"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 2,
+      "commit": "b397beab9a6e17555e458f2d4b2b7bbeef0ce2aa",
+      "parent": "0a0b6c40583f2aedbb31f91af68e19f18ca7c1ed",
+      "time": 1786931038899,
+      "untracked": [
+        ".dsh/rollback/session-1fecf83a-7111-485d-bb48-9055701513c7.json",
+        ".dsh/rollback/session-7a6bdc60-7e8f-4af7-8c3e-d373147ad888.json",
+        ".dsh/rollback/session-aa4c4e04-805b-4e91-8049-a7a9119b4a5a.json",
+        "repos/chassis_repo/chassis.c",
+        "repos/chassis_repo/chassis.h",
+        "repos/chassis_repo/odometry.c",
+        "repos/chassis_repo/odometry.h"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 3,
+      "commit": "b397beab9a6e17555e458f2d4b2b7bbeef0ce2aa",
+      "parent": "b397beab9a6e17555e458f2d4b2b7bbeef0ce2aa",
+      "time": 1786931308650,
+      "untracked": [
+        ".dsh/rollback/session-1fecf83a-7111-485d-bb48-9055701513c7.json",
+        ".dsh/rollback/session-7a6bdc60-7e8f-4af7-8c3e-d373147ad888.json",
+        ".dsh/rollback/session-aa4c4e04-805b-4e91-8049-a7a9119b4a5a.json",
+        "repos/chassis_repo/chassis.c",
+        "repos/chassis_repo/chassis.h",
+        "repos/chassis_repo/odometry.c",
+        "repos/chassis_repo/odometry.h"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 4,
+      "commit": "b397beab9a6e17555e458f2d4b2b7bbeef0ce2aa",
+      "parent": "b397beab9a6e17555e458f2d4b2b7bbeef0ce2aa",
+      "time": 1786931928707,
+      "untracked": [
+        ".dsh/rollback/session-1fecf83a-7111-485d-bb48-9055701513c7.json",
+        ".dsh/rollback/session-7a6bdc60-7e8f-4af7-8c3e-d373147ad888.json",
+        ".dsh/rollback/session-aa4c4e04-805b-4e91-8049-a7a9119b4a5a.json",
+        "repos/chassis_repo/chassis.c",
+        "repos/chassis_repo/chassis.h",
+        "repos/chassis_repo/odometry.c",
+        "repos/chassis_repo/odometry.h"
+      ],
+      "truncated": false,
+      "after": {
+        "commit": "092fdecc925ddf9b978718795e26a8517dc8e925",
+        "time": 1786932739383
+      }
+    },
+    {
+      "turn": 5,
+      "commit": "092fdecc925ddf9b978718795e26a8517dc8e925",
+      "parent": "092fdecc925ddf9b978718795e26a8517dc8e925",
+      "time": 1786932843506,
+      "untracked": [
+        ".dsh/rollback/session-1fecf83a-7111-485d-bb48-9055701513c7.json",
+        ".dsh/rollback/session-7a6bdc60-7e8f-4af7-8c3e-d373147ad888.json",
+        ".dsh/rollback/session-aa4c4e04-805b-4e91-8049-a7a9119b4a5a.json",
+        "repos/chassis_repo/chassis.c",
+        "repos/chassis_repo/chassis.h",
+        "repos/chassis_repo/odometry.c",
+        "repos/chassis_repo/odometry.h"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 6,
+      "commit": "3208c5274e887b75285325d7e299d6bfa74f6dee",
+      "parent": "092fdecc925ddf9b978718795e26a8517dc8e925",
+      "time": 1786933940028,
+      "untracked": [
+        ".dsh/rollback/session-1fecf83a-7111-485d-bb48-9055701513c7.json",
+        ".dsh/rollback/session-7a6bdc60-7e8f-4af7-8c3e-d373147ad888.json",
+        ".dsh/rollback/session-aa4c4e04-805b-4e91-8049-a7a9119b4a5a.json",
+        "repos/chassis_repo/CMakeLists.txt",
+        "repos/chassis_repo/chassis.c",
+        "repos/chassis_repo/chassis.h",
+        "repos/chassis_repo/odometry.c",
+        "repos/chassis_repo/odometry.h"
+      ],
+      "truncated": false,
+      "after": {
+        "commit": "5c8cf929d2e0769d88c3e0babea71d7f64a2fa11",
+        "time": 1786934286908
+      }
+    },
+    {
+      "turn": 7,
+      "commit": "5c8cf929d2e0769d88c3e0babea71d7f64a2fa11",
+      "parent": "5c8cf929d2e0769d88c3e0babea71d7f64a2fa11",
+      "time": 1786934744415,
+      "untracked": [
+        ".dsh/rollback/session-1fecf83a-7111-485d-bb48-9055701513c7.json",
+        ".dsh/rollback/session-7a6bdc60-7e8f-4af7-8c3e-d373147ad888.json",
+        ".dsh/rollback/session-aa4c4e04-805b-4e91-8049-a7a9119b4a5a.json",
+        "repos/chassis_repo/CMakeLists.txt",
+        "repos/chassis_repo/chassis.c",
+        "repos/chassis_repo/chassis.h",
+        "repos/chassis_repo/odometry.c",
+        "repos/chassis_repo/odometry.h"
+      ],
+      "truncated": false
+    }
+  ],
+  "rolls": [],
+  "undos": []
+}

@@ -38,6 +38,7 @@ add_executable(${CMAKE_PROJECT_NAME})
 add_subdirectory(cmake/stm32cubemx)
 add_subdirectory(repos/m3508_repo ${CMAKE_BINARY_DIR}/m3508_repo)
 add_subdirectory(repos/macnum_repo ${CMAKE_BINARY_DIR}/macnum_repo)
+add_subdirectory(repos/chassis_repo ${CMAKE_BINARY_DIR}/chassis_repo)
 
 # Link directories setup
 target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
@@ -69,4 +70,5 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     # Add user defined libraries
     m3508
     macnum
+    chassis
 )

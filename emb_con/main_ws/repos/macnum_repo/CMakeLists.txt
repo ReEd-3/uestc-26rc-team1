@@ -6,3 +6,4 @@ add_library(macnum STATIC
 target_include_directories(macnum PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
+target_link_libraries(macnum PUBLIC stm32cubemx)
