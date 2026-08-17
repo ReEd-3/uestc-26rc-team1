@@ -24,10 +24,10 @@ typedef struct {
 
     // 循线 PID 参数
     float line_kp;
-    float line_ki;          // 新增：积分系数
+    float line_ki;          // 积分系数
     float line_kd;
-    float line_integral;    // 新增：积分累加
-    float line_integral_max;// 新增：积分限幅
+    float line_integral;    // 积分累加
+    float line_integral_max;// 积分限幅
     float last_line_error;
     float line_forward_speed;
 } Chassis_t;
