@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "sessionId": "session-40ac7d5b-7764-458c-a111-4119d1173ced",
+  "cwd": "/run/media/lw3/D/Emb_Sys/projects/26rcteam1/emb_con/main_ws",
+  "checkpoints": [
+    {
+      "turn": 1,
+      "commit": "4fbcfe0e84fab87d5bdcba23a49c2d328d66ead1",
+      "parent": "c00d034146ad34dc4f8b2e719f9e41dd6e392f20",
+      "time": 1787020356820,
+      "untracked": [],
+      "truncated": false
+    }
+  ],
+  "rolls": [],
+  "updatedAt": 1787020356892
+}

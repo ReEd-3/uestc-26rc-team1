@@ -12,6 +12,10 @@ typedef void (*Interact_SendFn)(const uint8_t *data, uint16_t len);
 /* 上行发送缓冲区大小：一帧最大 17B，留一点余量 */
 #define INTERACT_TX_BUF_LEN  32u
 
+/* 手动模式（只发速度帧）超时自动停车：超过该时长没收到新的有效速度帧就 Chassis_Stop()。
+ * 取值要大于上位机实际的速度帧发送周期（比如 50Hz -> 20ms，设 200ms 留足余量）。 */
+#define INTERACT_VELOCITY_TIMEOUT_MS  300u
+
 typedef struct {
     Chassis       *chassis;   /* 底盘句柄（手动调试速度 / 状态回传用） */
     Chassis_Task1 *t1;        /* 任务1 句柄 */
@@ -29,6 +33,10 @@ typedef struct {
 
     /* ---- 任务控制 ---- */
     uint8_t task_paused;      /* 1=手动接管/暂停任务逻辑 */
+
+    /* ---- 手动模式超时自动停车 ---- */
+    uint32_t last_velocity_ms;      /* 最后一次收到"有效速度帧"的时刻(HAL_GetTick, ms) */
+    uint32_t velocity_timeout_ms;   /* 超时阈值(ms)，超过则 Chassis_Stop() */
 
     /* ---- 命令应答（ACK/回执）---- */
     uint8_t ack_cmd;          /* 待回执的命令字 */
@@ -65,5 +73,10 @@ void UartInteract_SendStatus(UartInteract *it);
 
 /* 读取任务暂停标志：外部主循环据此决定是否调用 Chassis_Task1_Update() */
 uint8_t UartInteract_IsPaused(const UartInteract *it);
+
+/* 手动模式超时检查：主控在 1kHz 控制任务里每拍调用。
+ * 若处于手动接管(task_paused)且距上次有效速度帧超过 velocity_timeout_ms，
+ * 立即 Chassis_Stop()。now_ms 由 HAL_GetTick() 提供。 */
+void UartInteract_CheckVelocityTimeout(UartInteract *it, uint32_t now_ms);
 
 #endif

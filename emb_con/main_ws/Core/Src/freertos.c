@@ -148,7 +148,13 @@ void StartChassisBaseTask(void *argument)
   for(;;)
   {
     osThreadFlagsWait(0x01u, osFlagsWaitAny, osWaitForever);
-    Chassis_Task1_Update(&t1); 
+    if (UartInteract_IsPaused(&it)) {
+      /* 手动接管：只跑底盘闭环，跳过任务1 FSM，避免自动逻辑和手控打架 */
+      UartInteract_CheckVelocityTimeout(&it, HAL_GetTick());
+      Chassis_Update(&ch);
+    } else {
+      Chassis_Task1_Update(&t1);
+    }
     // osDelay(1);
   }
   /* USER CODE END StartChassisBaseTask */

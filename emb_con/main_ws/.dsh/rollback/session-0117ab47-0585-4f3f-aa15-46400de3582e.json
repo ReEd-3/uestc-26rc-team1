@@ -1,0 +1,120 @@
+{
+  "version": 2,
+  "sessionId": "session-0117ab47-0585-4f3f-aa15-46400de3582e",
+  "cwd": "/run/media/lw3/D/Emb_Sys/projects/26rcteam1/emb_con/main_ws",
+  "updatedAt": 1787032733893,
+  "checkpoints": [
+    {
+      "turn": 1,
+      "commit": "50d4fc03190b93f04a05a5007d3cdbe75adc0d7a",
+      "parent": "c00d034146ad34dc4f8b2e719f9e41dd6e392f20",
+      "time": 1787020375485,
+      "untracked": [
+        ".dsh/rollback/session-40ac7d5b-7764-458c-a111-4119d1173ced.json"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 2,
+      "commit": "665a126a9843e1e80cf85efc844e012b737a0f06",
+      "parent": "50d4fc03190b93f04a05a5007d3cdbe75adc0d7a",
+      "time": 1787020958204,
+      "untracked": [
+        ".dsh/rollback/session-0117ab47-0585-4f3f-aa15-46400de3582e.json",
+        ".dsh/rollback/session-40ac7d5b-7764-458c-a111-4119d1173ced.json"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 3,
+      "commit": "f43f18d14d188f9acd3ae74601e60dbcf870a459",
+      "parent": "665a126a9843e1e80cf85efc844e012b737a0f06",
+      "time": 1787022615131,
+      "untracked": [
+        ".dsh/rollback/session-0117ab47-0585-4f3f-aa15-46400de3582e.json",
+        ".dsh/rollback/session-40ac7d5b-7764-458c-a111-4119d1173ced.json"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 4,
+      "commit": "5d92d3c47f3b74309b7d01e8768c35a3d6070ae2",
+      "parent": "f43f18d14d188f9acd3ae74601e60dbcf870a459",
+      "time": 1787025287581,
+      "untracked": [
+        ".dsh/rollback/session-0117ab47-0585-4f3f-aa15-46400de3582e.json",
+        ".dsh/rollback/session-40ac7d5b-7764-458c-a111-4119d1173ced.json"
+      ],
+      "truncated": false,
+      "after": {
+        "commit": "785a416b82a31c46f1912fa13d7c27a527952ef3",
+        "time": 1787025843883
+      }
+    },
+    {
+      "turn": 5,
+      "commit": "93aeff47981903ca2387c90300102be8635a808a",
+      "parent": "785a416b82a31c46f1912fa13d7c27a527952ef3",
+      "time": 1787027101444,
+      "untracked": [
+        ".dsh/rollback/session-0117ab47-0585-4f3f-aa15-46400de3582e.json",
+        ".dsh/rollback/session-40ac7d5b-7764-458c-a111-4119d1173ced.json"
+      ],
+      "truncated": false,
+      "after": {
+        "commit": "d3131bd432c90f62278f212afcbf19244330418d",
+        "time": 1787028124371
+      }
+    },
+    {
+      "turn": 6,
+      "commit": "d3131bd432c90f62278f212afcbf19244330418d",
+      "parent": "d3131bd432c90f62278f212afcbf19244330418d",
+      "time": 1787028428865,
+      "untracked": [
+        ".dsh/rollback/session-0117ab47-0585-4f3f-aa15-46400de3582e.json",
+        ".dsh/rollback/session-40ac7d5b-7764-458c-a111-4119d1173ced.json"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 7,
+      "commit": "6ab3b4b6dac4a021e98114d0b352de68412ac492",
+      "parent": "d3131bd432c90f62278f212afcbf19244330418d",
+      "time": 1787029112635,
+      "untracked": [
+        ".dsh/rollback/session-0117ab47-0585-4f3f-aa15-46400de3582e.json",
+        ".dsh/rollback/session-40ac7d5b-7764-458c-a111-4119d1173ced.json"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 8,
+      "commit": "6ab3b4b6dac4a021e98114d0b352de68412ac492",
+      "parent": "6ab3b4b6dac4a021e98114d0b352de68412ac492",
+      "time": 1787029555096,
+      "untracked": [
+        ".dsh/rollback/session-0117ab47-0585-4f3f-aa15-46400de3582e.json",
+        ".dsh/rollback/session-40ac7d5b-7764-458c-a111-4119d1173ced.json"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 9,
+      "commit": "6ab3b4b6dac4a021e98114d0b352de68412ac492",
+      "parent": "6ab3b4b6dac4a021e98114d0b352de68412ac492",
+      "time": 1787032547676,
+      "untracked": [
+        ".dsh/rollback/session-0117ab47-0585-4f3f-aa15-46400de3582e.json",
+        ".dsh/rollback/session-40ac7d5b-7764-458c-a111-4119d1173ced.json"
+      ],
+      "truncated": false,
+      "after": {
+        "commit": "0996bf5527e23345ad3ffbadc6b4a407636c1de5",
+        "time": 1787032733079
+      }
+    }
+  ],
+  "rolls": [],
+  "undos": []
+}

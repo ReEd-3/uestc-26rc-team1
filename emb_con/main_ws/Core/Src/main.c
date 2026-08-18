@@ -77,12 +77,12 @@ Chassis ch;
 M3508_CAN_All m3508;
 
 // 底盘配置
-Chassis_Config cfg = {1, 1, 1, M3508_GEAR_RATIO, 
+Chassis_Config cfg = {0.075, 0.305, 0.2905, M3508_GEAR_RATIO, 
   0.001, 
-  1, 1, 1, 
-  1, 1, 1,
-  1, 1, 1,
-  1, 1
+  1, 1, 0.5, 
+  1, 0, 0,
+  1, 0, 0,
+  0.02, 0.02
 };
 
 // 底盘任务
@@ -140,12 +140,12 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_USART3_UART_Init();
   MX_FDCAN1_Init();
   MX_FDCAN2_Init();
   MX_FDCAN3_Init();
   MX_TIM1_Init();
   MX_TIM2_Init();
-  MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
 
   // 启动定时器
@@ -153,6 +153,13 @@ int main(void)
 
   // 启动串口交互
   HAL_UART_Receive_IT(&huart3, (uint8_t *)&rx_byte, 1u);
+
+  // 开启CAN
+  HAL_FDCAN_Start(&hfdcan1);
+  if (M3508_CAN_Init(&m3508, 0b00001111, &hfdcan1) != HAL_OK) {
+    Error_Handler();
+  }
+  M3508_SpeedPID_Init(&m3508, 10.0, 0.0, 0.0, 0.001);
 
   // 初始化
   Chassis_Init(&ch, &m3508, &cfg);

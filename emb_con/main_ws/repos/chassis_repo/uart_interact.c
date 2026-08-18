@@ -1,4 +1,5 @@
 #include "uart_interact.h"
+#include "stm32h7xx_hal.h"   /* HAL_GetTick()：手动模式超时计时用 */
 #include <string.h>
 
 /* ======================== 接收状态机各状态 ======================== */
@@ -12,7 +13,7 @@ enum {
 };
 
 /* ======================== 帧校验 ========================
- * SUM = XOR(0x55, CMD, LEN, DATA[0..LEN-1])，不含 0xBB。
+ * SUM = XOR(DATA[0..LEN-1])，不含 0xBB。
  * buf 的前 len 个字节就是要参与校验的字节。
  */
 uint8_t Interact_Checksum(const uint8_t *buf, uint16_t len)
@@ -148,6 +149,7 @@ static void UartInteract_OnFrame(UartInteract *it)
                 float vy    = Interact_GetF32(&it->rx_data[4]);
                 float omega = Interact_GetF32(&it->rx_data[8]);
                 Chassis_SetVelocity(it->chassis, vx, vy, omega);
+                it->last_velocity_ms = HAL_GetTick();  /* 记录最后一条有效速度帧时刻，喂超时看门狗 */
             } else {
                 UartInteract_RequestAck(it, it->rx_cmd, 1u);  /* 长度错 -> NACK */
             }
@@ -180,6 +182,7 @@ void UartInteract_Init(UartInteract *it,
     it->t1      = t1;
     it->send    = send;
     it->rx_state = RX_WAIT_HEAD;
+    it->velocity_timeout_ms = INTERACT_VELOCITY_TIMEOUT_MS;
 }
 
 /* 串口中断逐字节喂入；帧内一旦出错，回到等帧头重新同步 */
@@ -192,20 +195,20 @@ void UartInteract_RxByte(UartInteract *it, uint8_t byte)
     switch (it->rx_state) {
         case RX_WAIT_HEAD:
             if (byte == INTERACT_FRAME_HEAD) {
-                it->rx_sum   = byte;      /* 从头帧开始累计校验 */
+                it->rx_sum   = 0;      /* 从头帧开始累计校验 */
                 it->rx_state = RX_WAIT_CMD;
             }
             break;
 
         case RX_WAIT_CMD:
             it->rx_cmd   = byte;
-            it->rx_sum  ^= byte;
+            // it->rx_sum  ^= byte;
             it->rx_state = RX_WAIT_LEN;
             break;
 
         case RX_WAIT_LEN:
             it->rx_len   = byte;
-            it->rx_sum  ^= byte;
+            // it->rx_sum  ^= byte;
 
             if (it->rx_len > INTERACT_MAX_DATA_LEN) {
                 it->rx_state = RX_WAIT_HEAD;  /* 长度非法，放弃本帧 */
@@ -267,7 +270,7 @@ void UartInteract_SendFrame(UartInteract *it, uint8_t cmd,
     for (i = 0u; i < len; i++) {
         buf[n++] = data[i];
     }
-    uint8_t sum = Interact_Checksum(buf, n);  /* 对 头~数据末 异或（先算再自增） */
+    uint8_t sum = Interact_Checksum(&buf[3], len);  /* 只对 DATA 逐字节异或 */
     buf[n++] = sum;
     buf[n++] = INTERACT_FRAME_TAIL;
 
@@ -337,4 +340,23 @@ uint8_t UartInteract_IsPaused(const UartInteract *it)
         return 0u;
     }
     return it->task_paused;
+}
+
+/* 手动模式超时自动停车：只对手动接管(task_paused=1)生效，自动任务不受影响。
+ * 用无符号减法算时间差，天然处理 HAL_GetTick 回绕。 */
+void UartInteract_CheckVelocityTimeout(UartInteract *it, uint32_t now_ms)
+{
+    uint32_t elapsed;
+
+    if (it == NULL || it->chassis == NULL) {
+        return;
+    }
+    if (!it->task_paused) {
+        return;              /* 自动任务阶段不干预 */
+    }
+
+    elapsed = now_ms - it->last_velocity_ms;
+    if (elapsed > it->velocity_timeout_ms) {
+        Chassis_Stop(it->chassis);   /* 超时没收到新的有效速度帧，立即停车 */
+    }
 }

@@ -60,35 +60,73 @@
 
 到平台上后机械臂依次从下向上堆叠放置
 
-## USART 通信协议（已定）
+## USART 通信协议（已定，上位机按此实现）
 
-- 实现位于 `repos/chassis_repo/`：`interact_cmds.h`（命令/frame常量）、`uart_interact.c/h`（解析状态机 + 打包 + ACK）
+- 串口参数：**USART3 @115200，8N1，无流控**。
+- 实现位于 `repos/chassis_repo/`：`interact_cmds.h`（命令/帧常量）、`uart_interact.c/h`（解析状态机 + 打包 + ACK）。
 
-- **帧格式**：`0x55 | CMD | LEN | DATA[0..LEN-1] | SUM | 0xBB`
-  - LEN = DATA 字节数（不含头/CMD/LEN/SUM/帧尾）
-  - SUM = 从 0x55 到 DATA 末尾逐字节异或（不含 0xBB）
-  - 数据统一小端；有 LEN 所以数据内出现 0x55/0xBB 无需转义
+### 帧格式
 
-- **命令字**（下行 0x00~0x7F，上行 0x80~0xFF；注意 CMD_HEARTBEAT=0xA0 是例外，按内容路由）：
+```
+0x55 | CMD | LEN | DATA[0..LEN-1] | SUM | 0xBB
+```
 
-  | 方向 | CMD | 数据域 | 含义 |
-  |------|-----|--------|------|
-  | 下行 | 0x01 | f32 | 目标停车距离【回执】|
-  | 下行 | 0x02 | u8 valid + f32 center + f32 slope | 巡线数据【高频不回】|
-  | 下行 | 0x03 | u8 valid + f32 dist | 到塔距离【高频不回】|
-  | 下行 | 0x04 | u8 flag | T路口/右转信号【回执】|
-  | 下行 | 0x05 | u8 | 任务控制 0复位/1启动/2暂停【回执】|
-  | 下行 | 0x10 | f32 vx+vy+omega | 手动调速度(调试)【不回】|
-  | 下行 | 0xA0 | u8 seq | 上位机心跳，MCU 回执 |
-  | 上行 | 0x81 | 空 | 第一次右转完成 |
-  | 上行 | 0x82 | 空 | 第二次右转完成 |
-  | 上行 | 0x83 | 空 | 任务完成 |
-  | 上行 | 0x84 | f32 x+y+yaw | 状态回传(可选) |
-  | 上行 | 0x85 | u8 cmd + u8 result | EVT_ACK 命令应答(回执) |
+- `LEN` = DATA 字节数（不含头/CMD/LEN/SUM/帧尾），范围 0~12。
+- `SUM` = **仅对 DATA[0..LEN-1] 逐字节异或**（不含 0x55/CMD/LEN/0xBB）；空数据帧（LEN=0）SUM=0。
+  - 计算：`sum = 0; for (b in DATA) sum ^= b;`
+- 数据统一**小端**（f32 低字节在前）。
+- 因帧里带 LEN，DATA 中出现 0x55/0xBB 无需转义。
+- 接收方校验：收到 DATA 后逐字节异或，与 SUM 相等才认帧；否则整帧丢弃、回到等帧头。
 
-- **ACK/回执机制**：单次命令（0x01/0x04/0x05/0xA0）处理成功后由 `UartInteract_RequestAck()` 挂起，下一拍 `UartInteract_Poll()` 发 `55 85 02 {ack_cmd}{result} SUM BB`；长度错误回 result=1(NACK)。缓冲发送而非在接收回调里直接发，避免中断里阻塞。
+### 命令字
 
-- **单位约定**：底盘/里程计全部 **m / rad**（`rea_x/y` m，yaw rad，速度 m/s，omega rad/s）；`target_distance` 与 `tower_distance` 必须同一物理单位（建议统一 m，默认 0.3 即 0.3m）；`line_center/slope` 是**图像域**（非米），巡线 PID 输入需自行换算/归一化。
+下行 0x00~0x7F，上行 0x80~0xFF；`CMD_HEARTBEAT=0xA0` 是例外，按内容路由。
+
+| 方向 | CMD | DATA 域 | 含义 |
+|------|-----|---------|------|
+| 下行 | 0x01 | f32 target_distance | 目标停车距离【回执】|
+| 下行 | 0x02 | u8 valid + f32 center + f32 slope (9B) | 巡线数据【高频不回】|
+| 下行 | 0x03 | u8 valid + f32 dist (5B) | 到塔距离【高频不回】|
+| 下行 | 0x04 | u8 flag (1B) | T路口/右转信号【回执】|
+| 下行 | 0x05 | u8 ctrl (1B) | 任务控制 0复位/1启动/2暂停【回执】|
+| 下行 | 0x10 | f32 vx + f32 vy + f32 omega (12B) | 手动速度【不回】|
+| 下行 | 0xA0 | u8 seq (1B) | 上位机心跳，MCU 回 ACK【回执】|
+| 上行 | 0x81 | 空 | 第一次右转完成 |
+| 上行 | 0x82 | 空 | 第二次右转完成 |
+| 上行 | 0x83 | 空 | 任务完成 |
+| 上行 | 0x84 | f32 x + f32 y + f32 yaw (12B) | 状态回传（可选：需主控周期调 `SendStatus`，默认不自动发）|
+| 上行 | 0x85 | u8 ack_cmd + u8 result (2B) | EVT_ACK 应答，result: 0=成功 1=NACK |
+
+### ACK/回执
+
+- 单次命令（0x01/0x04/0x05/0xA0）处理成功后回 `55 85 02 {ack_cmd}{result} SUM BB`；长度错回 NACK（result=1）。
+- 应答由 Comms 任务缓冲发送（非中断直发），处理成功下一拍发出。
+
+### 手动模式（上位机只发 0x10 速度帧）
+
+- 用法：上位机周期发送 `55 10 0C {vx}{vy}{omega 各 4B 小端 f32} {SUM} BB`。
+- 首条**有效**速度帧（LEN=12 且 SUM 正确）即进入手动接管：主控停用自动任务1 FSM（`task_paused=1`），此后只按最后一条速度目标做底盘闭环。
+- **发送周期必须 < `INTERACT_VELOCITY_TIMEOUT_MS`（默认 200ms）**，建议 10~100ms（如 50Hz=20ms）。超过该阈值没有新的**有效**速度帧 → 主控自动 `Chassis_Stop()` 停车。
+- 坏帧（SUM 错 / LEN≠12）不会执行，也不会刷新超时计时，等同超时处理。
+- 恢复发有效帧立即恢复运动。
+- 手动模式默认**无上行**；如需链路确认可发 0xA0 心跳（收 0x85 ACK），或用可选的 0x84 状态回传。
+
+### 单位约定
+
+- 底盘/里程计：**m / rad**（`rea_x/y` m，yaw rad）。
+- 手动速度：**vx/vy 单位 m/s，omega 单位 rad/s**；超过主控限幅（main.c `cfg`：max_vx=1、max_vy=1、max_omega=0.5）会被限幅。
+- `target_distance` 与 `tower_distance` 须同一物理单位（建议 m，默认 0.3 即 0.3m）。
+- `line_center/slope` 为**图像域**（非米），巡线 PID 输入需自行换算/归一化。
+
+### 速度帧示例（给上位机）
+
+发 vx=0.5、vy=0.0、omega=0.0（单位见上）：
+
+```
+55 10 0C  <0.5 小端4B>  <0.0 小端4B>  <0.0 小端4B>  <SUM> BB
+```
+
+`SUM` = 上述 12 个 DATA 字节的逐字节异或。
 
 ## FreeRTOS 任务架构（已定）
 
@@ -109,10 +147,13 @@
 
 - **串口发**：`uart_tx_hook`（main.c）用 `HAL_UART_Transmit` 阻塞发送，只在 Comms 任务上下文调用。
 
+- **已实现**：
+  - 手动接管分支：`StartChassisBaseTask` 里按 `UartInteract_IsPaused()` 分流——`task_paused=1` 时**跳过任务1 FSM、只跑 `Chassis_Update`**，避免手控与自动状态机打架
+  - 手动模式超时自动停车：`UartInteract_CheckVelocityTimeout(&it, HAL_GetTick())`（1kHz 任务里调用）。手控时**超过 `INTERACT_VELOCITY_TIMEOUT_MS`(默认200ms) 没收到新的有效速度帧（0x10 且长度正确）→ `Chassis_Stop()`**；自动任务阶段不干预
+
 - **尚待补充**：
-  - 手动接管分支：`CMD_SET_VELOCITY` 已置 `it.task_paused=1`，但控制任务目前**没检查 `UartInteract_IsPaused()`**（约定本阶段先不加）——后续加回去避免手控与自动状态机打架
   - 互斥量：`Chassis_Task1` 输入字段由 Comms 写、控制读，目前未加锁（vision<100Hz 时风险低，但 double 非原子）；需要时再加
-  - 监控/看门狗/上位机断联急停任务：尚未实现
+  - 断链看门狗/上位机心跳(0xA0)失效急停：目前只有"速度帧超时自动停"，若需在自动任务期间也监测链路保活需另加
   - 机械臂（M3508 伸缩、GO8010/DrEmpower 关节）、吸盘电磁阀的任务划分：尚未定
 
 ## 构建与烧录
