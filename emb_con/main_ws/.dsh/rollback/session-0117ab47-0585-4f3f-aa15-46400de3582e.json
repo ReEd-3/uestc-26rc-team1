@@ -2,7 +2,7 @@
   "version": 2,
   "sessionId": "session-0117ab47-0585-4f3f-aa15-46400de3582e",
   "cwd": "/run/media/lw3/D/Emb_Sys/projects/26rcteam1/emb_con/main_ws",
-  "updatedAt": 1787032733893,
+  "updatedAt": 1787039455740,
   "checkpoints": [
     {
       "turn": 1,
@@ -112,6 +112,56 @@
       "after": {
         "commit": "0996bf5527e23345ad3ffbadc6b4a407636c1de5",
         "time": 1787032733079
+      }
+    },
+    {
+      "turn": 10,
+      "commit": "b5ea33aa154b83cf4c3fa257c36e382978470771",
+      "parent": "0996bf5527e23345ad3ffbadc6b4a407636c1de5",
+      "time": 1787035772342,
+      "untracked": [
+        ".vscode/launch.json"
+      ],
+      "truncated": false,
+      "after": {
+        "commit": "8e5891ee5a130901f7bf0e72d471baaaf3a739cd",
+        "time": 1787035885829
+      }
+    },
+    {
+      "turn": 11,
+      "commit": "0d6422564ae2af83be52fe0454e2a51739d9b6c1",
+      "parent": "8e5891ee5a130901f7bf0e72d471baaaf3a739cd",
+      "time": 1787036761857,
+      "untracked": [
+        ".vscode/launch.json"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 12,
+      "commit": "8508b804eec66d781f82b1579b76dce90a9d9156",
+      "parent": "0d6422564ae2af83be52fe0454e2a51739d9b6c1",
+      "time": 1787038760006,
+      "untracked": [
+        ".vscode/launch.json",
+        "remote_ros_ws/"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 13,
+      "commit": "8508b804eec66d781f82b1579b76dce90a9d9156",
+      "parent": "8508b804eec66d781f82b1579b76dce90a9d9156",
+      "time": 1787039320284,
+      "untracked": [
+        ".vscode/launch.json",
+        "remote_ros_ws/"
+      ],
+      "truncated": false,
+      "after": {
+        "commit": "c7dc6454a6760bc1309944e019b8832457a03ecb",
+        "time": 1787039454269
       }
     }
   ],

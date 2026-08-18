@@ -116,7 +116,7 @@ int main(void)
 
   /* USER CODE END 1 */
 
-  /* MPU Configuration--------------------------------------------------------*/
+  /* MPU Configuration--------------------------------------------------------*/  
   MPU_Config();
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -155,10 +155,10 @@ int main(void)
   HAL_UART_Receive_IT(&huart3, (uint8_t *)&rx_byte, 1u);
 
   // 开启CAN
-  HAL_FDCAN_Start(&hfdcan1);
   if (M3508_CAN_Init(&m3508, 0b00001111, &hfdcan1) != HAL_OK) {
     Error_Handler();
   }
+  HAL_FDCAN_Start(&hfdcan1);
   M3508_SpeedPID_Init(&m3508, 10.0, 0.0, 0.0, 0.001);
 
   // 初始化
