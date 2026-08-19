@@ -19,10 +19,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "FreeRTOS.h"
-#include "chassis.h"
 #include "cmsis_os2.h"
 #include "fdcan.h"
-#include "stm32h7xx_hal_uart.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -69,7 +67,7 @@ void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN 0 */
 
 static void uart_tx_hook(const uint8_t *data, uint16_t len) {
-  HAL_UART_Transmit(&huart3, (uint8_t *)data, len, 100u);
+  HAL_UART_Transmit(&huart8, (uint8_t *)data, len, 100u);
 }
 
 // 底盘和电机总线句柄
@@ -97,9 +95,9 @@ extern osMessageQueueId_t CmdQueueTask1Handle;
 extern osThreadId_t ChassisMainTaskHandle;
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-  if (huart->Instance == USART3) {
+  if (huart->Instance == UART8) {
     osMessageQueuePut(CmdQueueTask1Handle, (uint8_t *)&rx_byte, 0U, 0U);  // 把收到的字节压进队尾
-    HAL_UART_Receive_IT(&huart3, (uint8_t *)&rx_byte, 1u);  // 继续接收串口字节
+    HAL_UART_Receive_IT(&huart8, (uint8_t *)&rx_byte, 1u);  // 继续接收串口字节
   }
 }
 
@@ -116,7 +114,7 @@ int main(void)
 
   /* USER CODE END 1 */
 
-  /* MPU Configuration--------------------------------------------------------*/  
+  /* MPU Configuration--------------------------------------------------------*/
   MPU_Config();
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -140,19 +138,20 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_USART3_UART_Init();
   MX_FDCAN1_Init();
   MX_FDCAN2_Init();
   MX_FDCAN3_Init();
   MX_TIM1_Init();
   MX_TIM2_Init();
+  MX_USART3_UART_Init();
+  MX_UART8_Init();
   /* USER CODE BEGIN 2 */
 
   // 启动定时器
   HAL_TIM_Base_Start_IT(&htim1);
 
   // 启动串口交互
-  HAL_UART_Receive_IT(&huart3, (uint8_t *)&rx_byte, 1u);
+  HAL_UART_Receive_IT(&huart8, (uint8_t *)&rx_byte, 1u);
 
   // 开启CAN
   if (M3508_CAN_Init(&m3508, 0b00001111, &hfdcan1) != HAL_OK) {
@@ -160,19 +159,27 @@ int main(void)
   }
   m3508.motors[0].rotation = 1;  // 左前轮
   m3508.motors[1].rotation = -1;  // 右前轮
-  m3508.motors[2].rotation = 1;  // 左前轮
-  m3508.motors[3].rotation = -1;  // 右前轮
+  m3508.motors[2].rotation = 1;  // 左后轮
+  m3508.motors[3].rotation = -1;  // 右后轮
+
+
+  HAL_FDCAN_Start(&hfdcan1);
+  M3508_SpeedPID_Init(&m3508, 22.0, 0.07, 0.07, 0.001);
 
   Int16_IIRFilter_Init(&m3508.motors[0].speed_pid.iir_filter, 0.9);
   Int16_IIRFilter_Init(&m3508.motors[1].speed_pid.iir_filter, 0.9);
   Int16_IIRFilter_Init(&m3508.motors[2].speed_pid.iir_filter, 0.9);
   Int16_IIRFilter_Init(&m3508.motors[3].speed_pid.iir_filter, 0.9);
 
-  HAL_FDCAN_Start(&hfdcan1);
-  M3508_SpeedPID_Init(&m3508, 22.0, 0.07, 0.07, 0.001);
-
   // 初始化
   Chassis_Init(&ch, &m3508, &cfg);
+
+  // 把电机安装方向同步给麦轮里程计，保证反装轮子的编码器方向也正确
+  ch.mn.rotation[0] = m3508.motors[0].rotation;
+  ch.mn.rotation[1] = m3508.motors[1].rotation;
+  ch.mn.rotation[2] = m3508.motors[2].rotation;
+  ch.mn.rotation[3] = m3508.motors[3].rotation;
+
   Chassis_Task1_Init(&t1, &ch);
   UartInteract_Init(&it, &ch, &t1, uart_tx_hook);
 

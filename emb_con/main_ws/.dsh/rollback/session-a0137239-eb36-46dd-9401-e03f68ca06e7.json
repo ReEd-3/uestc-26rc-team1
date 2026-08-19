@@ -1,0 +1,73 @@
+{
+  "version": 2,
+  "sessionId": "session-a0137239-eb36-46dd-9401-e03f68ca06e7",
+  "cwd": "/run/media/lw3/D/Emb_Sys/projects/26rcteam1/emb_con/main_ws",
+  "updatedAt": 1787130469893,
+  "checkpoints": [
+    {
+      "turn": 1,
+      "commit": "45e8b595c48b79ed9ab881cef57a87b4cd5431e2",
+      "parent": "0b53ba831dbe7677e2ba4a6aef15c27d428a938a",
+      "time": 1787111418777,
+      "untracked": [],
+      "truncated": false,
+      "after": {
+        "commit": "adca91c40703d8c6538b2baeeaeaf32053903548",
+        "time": 1787111620003
+      }
+    },
+    {
+      "turn": 2,
+      "commit": "f8458ddb4d0df8409116e3465ff89ebdae6f7474",
+      "parent": "adca91c40703d8c6538b2baeeaeaf32053903548",
+      "time": 1787121829659,
+      "untracked": [
+        ".dsh/rollback/session-a0137239-eb36-46dd-9401-e03f68ca06e7.json"
+      ],
+      "truncated": false,
+      "after": {
+        "commit": "6104853c0fbef1362d17689145950918355f8aaa",
+        "time": 1787121918028
+      }
+    },
+    {
+      "turn": 3,
+      "commit": "6104853c0fbef1362d17689145950918355f8aaa",
+      "parent": "6104853c0fbef1362d17689145950918355f8aaa",
+      "time": 1787122086576,
+      "untracked": [
+        ".dsh/rollback/session-a0137239-eb36-46dd-9401-e03f68ca06e7.json"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 4,
+      "commit": "6104853c0fbef1362d17689145950918355f8aaa",
+      "parent": "6104853c0fbef1362d17689145950918355f8aaa",
+      "time": 1787122112877,
+      "untracked": [
+        ".dsh/rollback/session-a0137239-eb36-46dd-9401-e03f68ca06e7.json"
+      ],
+      "truncated": false,
+      "after": {
+        "commit": "e8c9e1d404ea015c4d1776a7db0348c3132a2eb9",
+        "time": 1787122211212
+      }
+    },
+    {
+      "turn": 5,
+      "commit": "06e8630877403fdd06ca530ddf47bd1f69192680",
+      "parent": "e8c9e1d404ea015c4d1776a7db0348c3132a2eb9",
+      "time": 1787130468970,
+      "untracked": [
+        ".dsh/rollback/session-a0137239-eb36-46dd-9401-e03f68ca06e7.json",
+        "repos/encoder_odo/CMakeLists.txt",
+        "repos/encoder_odo/encoder_odo.c",
+        "repos/encoder_odo/encoder_odo.h"
+      ],
+      "truncated": false
+    }
+  ],
+  "rolls": [],
+  "undos": []
+}

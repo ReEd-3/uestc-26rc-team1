@@ -46,6 +46,7 @@ void Macnum_Init (Macnum *mn,
 
     for (int i = 0; i < 4; ++i) {
         mn->tar_rpm[i] = 0.0;
+        mn->rotation[i] = 1;  // 默认正装
     }
 }
 
@@ -68,7 +69,8 @@ void Macnum_SetTarget(Macnum *mn,
     wheel_rad_s[3] = (vx - vy + k * omega) / r;
     for (int i = 0; i < 4; ++i) {
         // 算出来是转动的角速度，转换成rpm转速
-        mn->tar_rpm[i] = MACNUM_RAD_S_TO_RPM(wheel_rad_s[i]);
+        // 输出的是电机轴 RPM：轮子 RPM 必须乘减速比，M3508 速度反馈是电机轴转速
+        mn->tar_rpm[i] = MACNUM_RAD_S_TO_RPM(wheel_rad_s[i]) * mn->gear_ratio;
     }
 }
 
@@ -80,7 +82,8 @@ void Macnum_RPMStateUpdate(Macnum *mn,
     double r = mn->wheel_radius;
     double w[4];
     for (int i = 0; i < 4; ++i) {
-        w[i] = MACNUM_RPM_TO_RAD_S(rea_rpm[i]);
+        // rea_rpm 如果是电机轴 RPM，要先除以减速比得到轮子 RPM
+        w[i] = MACNUM_RPM_TO_RAD_S(rea_rpm[i] / mn->gear_ratio * mn->rotation[i]);
     }
     // 计算真实的速度
     mn->rea_vx = r * (w[0] + w[1] + w[2] + w[3]) / 4.0;
@@ -109,7 +112,8 @@ void Macnum_PositionStateUpdate(Macnum *mn, uint16_t *encoder_raw)
     for (int i = 0; i < MACNUM_WHEEL_COUNT; ++i) {
         int32_t delta = Macnum_Odo_WrapDelta((uint16_t)encoder_raw[i],
                                              (int32_t)mn->raw_encoder[i]);
-        wheel_displacement[i] = (double)delta / mn->encoder_counts *
+        wheel_displacement[i] = (double)delta * mn->rotation[i] /
+                                mn->encoder_counts *
                                 circumference / mn->gear_ratio;
         mn->raw_encoder[i] = encoder_raw[i];
     }
