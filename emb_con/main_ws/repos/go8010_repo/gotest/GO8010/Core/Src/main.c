@@ -69,9 +69,9 @@ static void vofa_send(float *data, uint16_t count)
 {
     uint8_t head[4] = {0x00, 0x00, 0x80, 0x7F};
     uint8_t tail[4] = {0x00, 0x00, 0x80, 0x7F};
-    HAL_UART_Transmit(&huart3, head, 4, 100);
-    HAL_UART_Transmit(&huart3, (uint8_t *)data, count * 4, 100);
-    HAL_UART_Transmit(&huart3, tail, 4, 100);
+    HAL_UART_Transmit(&huart8, head, 4, 100);
+    HAL_UART_Transmit(&huart8, (uint8_t *)data, count * 4, 100);
+    HAL_UART_Transmit(&huart8, tail, 4, 100);
 }
 
 /* USER CODE END 0 */

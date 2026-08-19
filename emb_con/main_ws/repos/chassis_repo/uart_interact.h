@@ -14,7 +14,7 @@ typedef void (*Interact_SendFn)(const uint8_t *data, uint16_t len);
 
 /* 手动模式（只发速度帧）超时自动停车：超过该时长没收到新的有效速度帧就 Chassis_Stop()。
  * 取值要大于上位机实际的速度帧发送周期（比如 50Hz -> 20ms，设 200ms 留足余量）。 */
-#define INTERACT_VELOCITY_TIMEOUT_MS  200u
+#define INTERACT_VELOCITY_TIMEOUT_MS  100u
 
 typedef struct {
     Chassis       *chassis;   /* 底盘句柄（手动调试速度 / 状态回传用） */
