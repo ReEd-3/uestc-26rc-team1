@@ -91,48 +91,48 @@ static void UartInteract_OnFrame(UartInteract *it)
     }
 
     switch (it->rx_cmd) {
-        case CMD_SET_TARGET_DISTANCE:      /* 设置目标停车距离（单次命令，回执）*/
-            if (it->rx_len == 4u && it->t1) {
-                float d = Interact_GetF32(it->rx_data);
-                Chassis_Task1_SetTargetDistance(it->t1, d);
-                UartInteract_RequestAck(it, it->rx_cmd, 0u);
-            } else {
-                UartInteract_RequestAck(it, it->rx_cmd, 1u);  /* 长度错 -> NACK */
-            }
-            break;
+        // case CMD_SET_TARGET_DISTANCE:      /* 设置目标停车距离（单次命令，回执）*/
+        //     if (it->rx_len == 4u && it->t1) {
+        //         float d = Interact_GetF32(it->rx_data);
+        //         Chassis_Task1_SetTargetDistance(it->t1, d);
+        //         UartInteract_RequestAck(it, it->rx_cmd, 0u);
+        //     } else {
+        //         UartInteract_RequestAck(it, it->rx_cmd, 1u);  /* 长度错 -> NACK */
+        //     }
+        //     break;
 
-        case CMD_SEND_LINE_DATA:           /* 巡线数据（高频帧流，不回执） */
-            if (it->rx_len == 9u && it->t1) {
-                uint8_t valid = it->rx_data[0];
-                float center = Interact_GetF32(&it->rx_data[1]);
-                float slope  = Interact_GetF32(&it->rx_data[5]);
-                if (valid) {
-                    Chassis_Task1_OnLineData(it->t1, center, slope);
-                }
-                /* valid==0 时不调用，line_found 保持 0，状态机停在找线 */
-            }
-            break;
+        // case CMD_SEND_LINE_DATA:           /* 巡线数据（高频帧流，不回执） */
+        //     if (it->rx_len == 9u && it->t1) {
+        //         uint8_t valid = it->rx_data[0];
+        //         float center = Interact_GetF32(&it->rx_data[1]);
+        //         float slope  = Interact_GetF32(&it->rx_data[5]);
+        //         if (valid) {
+        //             Chassis_Task1_OnLineData(it->t1, center, slope);
+        //         }
+        //         /* valid==0 时不调用，line_found 保持 0，状态机停在找线 */
+        //     }
+        //     break;
 
-        case CMD_SEND_TOWER_DIST:          /* 到塔距离（高频帧流，不回执） */
-            if (it->rx_len == 5u && it->t1) {
-                uint8_t valid = it->rx_data[0];
-                float dist   = Interact_GetF32(&it->rx_data[1]);
-                if (valid) {
-                    Chassis_Task1_OnTowerDistance(it->t1, dist);
-                }
-            }
-            break;
+        // case CMD_SEND_TOWER_DIST:          /* 到塔距离（高频帧流，不回执） */
+        //     if (it->rx_len == 5u && it->t1) {
+        //         uint8_t valid = it->rx_data[0];
+        //         float dist   = Interact_GetF32(&it->rx_data[1]);
+        //         if (valid) {
+        //             Chassis_Task1_OnTowerDistance(it->t1, dist);
+        //         }
+        //     }
+        //     break;
 
-        case CMD_SEND_JUNCTION:            /* T路口/右转信号（单次命令，回执） */
-            if (it->rx_len == 1u) {
-                if (it->rx_data[0] != 0u && it->t1) {
-                    Chassis_Task1_OnJunctionSignal(it->t1);
-                }
-                UartInteract_RequestAck(it, it->rx_cmd, 0u);
-            } else {
-                UartInteract_RequestAck(it, it->rx_cmd, 1u);
-            }
-            break;
+        // case CMD_SEND_JUNCTION:            /* T路口/右转信号（单次命令，回执） */
+        //     if (it->rx_len == 1u) {
+        //         if (it->rx_data[0] != 0u && it->t1) {
+        //             Chassis_Task1_OnJunctionSignal(it->t1);
+        //         }
+        //         UartInteract_RequestAck(it, it->rx_cmd, 0u);
+        //     } else {
+        //         UartInteract_RequestAck(it, it->rx_cmd, 1u);
+        //     }
+        //     break;
 
         case CMD_TASK_CONTROL:             /* 任务控制（单次命令，回执） */
             if (it->rx_len == 1u) {
@@ -145,6 +145,7 @@ static void UartInteract_OnFrame(UartInteract *it)
 
         case CMD_SET_VELOCITY:             /* 手动调试速度（帧流，不回执） */
             if (it->rx_len == 12u && it->chassis) {
+                // 数据转回浮点数
                 float vx    = Interact_GetF32(&it->rx_data[0]);
                 float vy    = Interact_GetF32(&it->rx_data[4]);
                 float omega = Interact_GetF32(&it->rx_data[8]);
@@ -289,12 +290,20 @@ void UartInteract_Poll(UartInteract *it)
 
     ev = Chassis_Task1_PopHostEvent(it->t1);
     switch (ev) {
-        case CHASSIS_TASK1_HOST_EVENT_TURN_DONE_1:
-            UartInteract_SendFrame(it, EVT_TURN_DONE_1, NULL, 0u);
+        // case CHASSIS_TASK1_HOST_EVENT_TURN_DONE_1:   /* 旧巡线方案，注释保留 */
+        //     UartInteract_SendFrame(it, EVT_TURN_DONE_1, NULL, 0u);
+        //     break;
+
+        // case CHASSIS_TASK1_HOST_EVENT_TURN_DONE_2:   /* 旧巡线方案，注释保留 */
+        //     UartInteract_SendFrame(it, EVT_TURN_DONE_2, NULL, 0u);
+        //     break;
+
+        case CHASSIS_TASK1_HOST_EVENT_MOVE_DONE_1:
+            UartInteract_SendFrame(it, EVT_MOVE_DONE_1, NULL, 0u);
             break;
 
-        case CHASSIS_TASK1_HOST_EVENT_TURN_DONE_2:
-            UartInteract_SendFrame(it, EVT_TURN_DONE_2, NULL, 0u);
+        case CHASSIS_TASK1_HOST_EVENT_MOVE_DONE_2:
+            UartInteract_SendFrame(it, EVT_MOVE_DONE_2, NULL, 0u);
             break;
 
         case CHASSIS_TASK1_HOST_EVENT_TASK_DONE:
@@ -334,13 +343,13 @@ void UartInteract_SendStatus(UartInteract *it)
     UartInteract_SendFrame(it, CMD_REPORT_STATUS, buf, 12u);
 }
 
-uint8_t UartInteract_IsPaused(const UartInteract *it)
-{
-    if (it == NULL) {
-        return 0u;
-    }
-    return it->task_paused;
-}
+// uint8_t UartInteract_IsPaused(const UartInteract *it)
+// {
+//     if (it == NULL) {
+//         return 0u;
+//     }
+//     return it->task_paused;
+// }
 
 /* 手动模式超时自动停车：只对手动接管(task_paused=1)生效，自动任务不受影响。
  * 用无符号减法算时间差，天然处理 HAL_GetTick 回绕。 */
