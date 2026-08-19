@@ -79,9 +79,9 @@ M3508_CAN_All m3508;
 // 底盘配置
 Chassis_Config cfg = {0.075, 0.305, 0.2905, M3508_GEAR_RATIO, 
   0.001, 
-  1, 1, 0.5, 
-  1, 0, 0,
-  1, 0, 0,
+  5, 5, 1, 
+  10, 0.1, 0,
+  10, 0.1, 0,
   0.02, 0.02
 };
 
@@ -158,13 +158,27 @@ int main(void)
   if (M3508_CAN_Init(&m3508, 0b00001111, &hfdcan1) != HAL_OK) {
     Error_Handler();
   }
+  m3508.motors[0].rotation = 1;  // 左前轮
+  m3508.motors[1].rotation = -1;  // 右前轮
+  m3508.motors[2].rotation = 1;  // 左前轮
+  m3508.motors[3].rotation = -1;  // 右前轮
+
+  Int16_IIRFilter_Init(&m3508.motors[0].speed_pid.iir_filter, 0.9);
+  Int16_IIRFilter_Init(&m3508.motors[1].speed_pid.iir_filter, 0.9);
+  Int16_IIRFilter_Init(&m3508.motors[2].speed_pid.iir_filter, 0.9);
+  Int16_IIRFilter_Init(&m3508.motors[3].speed_pid.iir_filter, 0.9);
+
   HAL_FDCAN_Start(&hfdcan1);
-  M3508_SpeedPID_Init(&m3508, 10.0, 0.0, 0.0, 0.001);
+  M3508_SpeedPID_Init(&m3508, 22.0, 0.07, 0.07, 0.001);
 
   // 初始化
   Chassis_Init(&ch, &m3508, &cfg);
   Chassis_Task1_Init(&t1, &ch);
   UartInteract_Init(&it, &ch, &t1, uart_tx_hook);
+
+  // TODO: 临时强制进入“上机手动”状态，便于调试；正式版可去掉
+  it.task_paused = 1u;
+  it.last_velocity_ms = HAL_GetTick();
 
   /* USER CODE END 2 */
 

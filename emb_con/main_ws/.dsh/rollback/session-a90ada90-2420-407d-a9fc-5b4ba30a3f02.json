@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "sessionId": "session-a90ada90-2420-407d-a9fc-5b4ba30a3f02",
+  "cwd": "/home/lw3/Projects/26rcteam1/uestc-26rc-team1/emb_con/main_ws",
+  "updatedAt": 1787062590068,
+  "checkpoints": [
+    {
+      "turn": 1,
+      "commit": "7b26c23f5888e4a8e4709160e0990422550296f0",
+      "parent": "19bb3774cbe36a4f5a8d7d7f453e408038b67fc8",
+      "time": 1787062403222,
+      "untracked": [
+        "remote_ros_ws/"
+      ],
+      "truncated": false,
+      "after": {
+        "commit": "577638dceddec68b1a9a2c448f47ef2aaf1b3130",
+        "time": 1787062580916
+      }
+    }
+  ],
+  "rolls": [],
+  "undos": []
+}

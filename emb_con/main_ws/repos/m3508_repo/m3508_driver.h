@@ -44,6 +44,7 @@ typedef struct {
     PID_t position_pid;  // 位置环
     M3508_PID_Mode pid_mode;  // PID控制模式
     double max_speed;  // 串级PID速度限幅
+    int8_t rotation;   // 旋转方向: 1=正装, -1=反装
 } M3508_HandleTypeDef;
 
 // 总线句柄，表示总线上所有的电机
@@ -55,7 +56,7 @@ typedef struct {
 } M3508_CAN_All;
 
 
-HAL_StatusTypeDef M3508_Init(M3508_HandleTypeDef *motor, FDCAN_HandleTypeDef *hfdcan, uint8_t can_id, M3508_PID_Mode mode, double max_speed);
+HAL_StatusTypeDef M3508_Init(M3508_HandleTypeDef *motor, FDCAN_HandleTypeDef *hfdcan, uint8_t can_id, M3508_PID_Mode mode, double max_speed, int8_t rotation);
 HAL_StatusTypeDef M3508_SetCurrent(M3508_CAN_All *m3508_can);
 HAL_StatusTypeDef M3508_CAN_Init(M3508_CAN_All *m3508_can, uint8_t motor_ids, FDCAN_HandleTypeDef *hfdcan);
 HAL_StatusTypeDef M3508_ReadStatus(M3508_CAN_All *m3508_can);

@@ -4,9 +4,10 @@
 #include "pid.h"
 #include "float.h"
 #include "iir.h"
+#include <stdint.h>
 
 // 对总线上单个电机进行初始化
-HAL_StatusTypeDef M3508_Init(M3508_HandleTypeDef *motor, FDCAN_HandleTypeDef *hfdcan, uint8_t can_id, M3508_PID_Mode mode, double max_speed) {
+HAL_StatusTypeDef M3508_Init(M3508_HandleTypeDef *motor, FDCAN_HandleTypeDef *hfdcan, uint8_t can_id, M3508_PID_Mode mode, double max_speed, int8_t rotation) {
     if (motor == NULL || hfdcan == NULL) {
         return HAL_ERROR; // 检查指针是否为空
     }
@@ -20,6 +21,7 @@ HAL_StatusTypeDef M3508_Init(M3508_HandleTypeDef *motor, FDCAN_HandleTypeDef *hf
     motor->temperature = 0;
     motor->pid_mode = mode;
     motor->max_speed = max_speed;
+    motor->rotation = rotation;
 
     return HAL_OK; // 初始化成功
 }
@@ -56,7 +58,7 @@ HAL_StatusTypeDef M3508_CAN_Init(M3508_CAN_All *m3508_can, uint8_t motor_ids, FD
     for (int i = 0; i < 8; i++) {
 
         // 初始化每个电机，主要是id, 默认速度环, 默认积分不限幅
-        if (M3508_Init(&m3508_can->motors[i], hfdcan, i + 1, M3508_SPEEDPID_MODE, DBL_MAX) != HAL_OK) {
+        if (M3508_Init(&m3508_can->motors[i], hfdcan, i + 1, M3508_SPEEDPID_MODE, DBL_MAX, 1) != HAL_OK) {
             return HAL_ERROR; // 初始化失败
         }
 
@@ -257,7 +259,8 @@ void M3508_PID_Update(M3508_CAN_All *m3508_can) {
         /* 根据电机的PID模式分发计算 */
         switch (motor->pid_mode) {
             case M3508_SPEEDPID_MODE:  // 速度环模式
-                motor->speed_pid.current = Int16_IIRFilter_Update(&motor->speed_pid.iir_filter, motor->speed);  // 滤波后的速度进环
+                // 反馈速度也按安装方向换算，避免反装电机形成正反馈
+                motor->speed_pid.current = Int16_IIRFilter_Update(&motor->speed_pid.iir_filter, (int16_t)(motor->speed * motor->rotation));
                 output = PID_Compute(&motor->speed_pid);
                 break;
 
@@ -276,6 +279,9 @@ void M3508_PID_Update(M3508_CAN_All *m3508_can) {
                 output = PID_Compute(&motor->speed_pid);
                 break;
         }
+
+        /* 按电机安装方向换算物理电流方向 */
+        output *= motor->rotation;
 
         /* 限幅到电流范围 [-16384, 16384] */
         if (output > M3508_CURRENT_MAX)  output = M3508_CURRENT_MAX;

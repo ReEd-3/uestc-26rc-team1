@@ -1,0 +1,277 @@
+{
+  "version": 2,
+  "sessionId": "session-dad7ec58-75cf-42c3-84ee-579da2c47a2e",
+  "cwd": "/home/lw3/Projects/26rcteam1/uestc-26rc-team1/emb_con/main_ws",
+  "updatedAt": 1787078028568,
+  "checkpoints": [
+    {
+      "turn": 5,
+      "commit": "7f703ab7d00ec84d2dbf7ad42e147764e59f95a4",
+      "parent": "19bb3774cbe36a4f5a8d7d7f453e408038b67fc8",
+      "time": 1787066650681,
+      "untracked": [
+        ".dsh/rollback/session-a90ada90-2420-407d-a9fc-5b4ba30a3f02.json",
+        "49-stlink.rules"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 6,
+      "commit": "7f703ab7d00ec84d2dbf7ad42e147764e59f95a4",
+      "parent": "7f703ab7d00ec84d2dbf7ad42e147764e59f95a4",
+      "time": 1787066972335,
+      "untracked": [
+        ".dsh/rollback/session-a90ada90-2420-407d-a9fc-5b4ba30a3f02.json",
+        ".dsh/rollback/session-dad7ec58-75cf-42c3-84ee-579da2c47a2e.json",
+        "49-stlink.rules"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 7,
+      "commit": "7f703ab7d00ec84d2dbf7ad42e147764e59f95a4",
+      "parent": "7f703ab7d00ec84d2dbf7ad42e147764e59f95a4",
+      "time": 1787068563896,
+      "untracked": [
+        ".dsh/rollback/session-a90ada90-2420-407d-a9fc-5b4ba30a3f02.json",
+        ".dsh/rollback/session-dad7ec58-75cf-42c3-84ee-579da2c47a2e.json",
+        "49-stlink.rules"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 8,
+      "commit": "7f703ab7d00ec84d2dbf7ad42e147764e59f95a4",
+      "parent": "7f703ab7d00ec84d2dbf7ad42e147764e59f95a4",
+      "time": 1787068580590,
+      "untracked": [
+        ".dsh/rollback/session-a90ada90-2420-407d-a9fc-5b4ba30a3f02.json",
+        ".dsh/rollback/session-dad7ec58-75cf-42c3-84ee-579da2c47a2e.json",
+        "49-stlink.rules"
+      ],
+      "truncated": false,
+      "after": {
+        "commit": "fdc344b984859618684c1e02f5c92f41c39f0e68",
+        "time": 1787068642953
+      }
+    },
+    {
+      "turn": 9,
+      "commit": "fdc344b984859618684c1e02f5c92f41c39f0e68",
+      "parent": "fdc344b984859618684c1e02f5c92f41c39f0e68",
+      "time": 1787068776208,
+      "untracked": [
+        ".dsh/rollback/session-a90ada90-2420-407d-a9fc-5b4ba30a3f02.json",
+        ".dsh/rollback/session-dad7ec58-75cf-42c3-84ee-579da2c47a2e.json",
+        "49-stlink.rules"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 10,
+      "commit": "fdc344b984859618684c1e02f5c92f41c39f0e68",
+      "parent": "fdc344b984859618684c1e02f5c92f41c39f0e68",
+      "time": 1787068983968,
+      "untracked": [
+        ".dsh/rollback/session-a90ada90-2420-407d-a9fc-5b4ba30a3f02.json",
+        ".dsh/rollback/session-dad7ec58-75cf-42c3-84ee-579da2c47a2e.json",
+        "49-stlink.rules"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 11,
+      "commit": "fdc344b984859618684c1e02f5c92f41c39f0e68",
+      "parent": "fdc344b984859618684c1e02f5c92f41c39f0e68",
+      "time": 1787069158729,
+      "untracked": [
+        ".dsh/rollback/session-a90ada90-2420-407d-a9fc-5b4ba30a3f02.json",
+        ".dsh/rollback/session-dad7ec58-75cf-42c3-84ee-579da2c47a2e.json",
+        "49-stlink.rules"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 12,
+      "commit": "58474945b6ba21219f261ed26fefc948ff0f71fb",
+      "parent": "fdc344b984859618684c1e02f5c92f41c39f0e68",
+      "time": 1787069467652,
+      "untracked": [
+        ".dsh/rollback/session-a90ada90-2420-407d-a9fc-5b4ba30a3f02.json",
+        ".dsh/rollback/session-dad7ec58-75cf-42c3-84ee-579da2c47a2e.json",
+        "49-stlink.rules"
+      ],
+      "truncated": false,
+      "after": {
+        "commit": "5755f263e844ad65078c2ae7976d43c5536ca36a",
+        "time": 1787069505197
+      }
+    },
+    {
+      "turn": 13,
+      "commit": "5755f263e844ad65078c2ae7976d43c5536ca36a",
+      "parent": "5755f263e844ad65078c2ae7976d43c5536ca36a",
+      "time": 1787070047573,
+      "untracked": [
+        ".dsh/rollback/session-a90ada90-2420-407d-a9fc-5b4ba30a3f02.json",
+        ".dsh/rollback/session-dad7ec58-75cf-42c3-84ee-579da2c47a2e.json",
+        "49-stlink.rules"
+      ],
+      "truncated": false,
+      "after": {
+        "commit": "4be5108743a64c27056f6b0b62546aea9b8b406b",
+        "time": 1787070126541
+      }
+    },
+    {
+      "turn": 14,
+      "commit": "4be5108743a64c27056f6b0b62546aea9b8b406b",
+      "parent": "4be5108743a64c27056f6b0b62546aea9b8b406b",
+      "time": 1787070233967,
+      "untracked": [
+        ".dsh/rollback/session-467ccd88-3263-470a-81a1-1c724ef0b6c5.json",
+        ".dsh/rollback/session-a90ada90-2420-407d-a9fc-5b4ba30a3f02.json",
+        ".dsh/rollback/session-dad7ec58-75cf-42c3-84ee-579da2c47a2e.json",
+        "49-stlink.rules"
+      ],
+      "truncated": false,
+      "after": {
+        "commit": "1eb97aea55c91a905283d284e3af23db1aeb3af0",
+        "time": 1787070297733
+      }
+    },
+    {
+      "turn": 15,
+      "commit": "1eb97aea55c91a905283d284e3af23db1aeb3af0",
+      "parent": "1eb97aea55c91a905283d284e3af23db1aeb3af0",
+      "time": 1787070353835,
+      "untracked": [
+        ".dsh/rollback/session-467ccd88-3263-470a-81a1-1c724ef0b6c5.json",
+        ".dsh/rollback/session-a90ada90-2420-407d-a9fc-5b4ba30a3f02.json",
+        ".dsh/rollback/session-dad7ec58-75cf-42c3-84ee-579da2c47a2e.json",
+        "49-stlink.rules"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 16,
+      "commit": "1eb97aea55c91a905283d284e3af23db1aeb3af0",
+      "parent": "1eb97aea55c91a905283d284e3af23db1aeb3af0",
+      "time": 1787071386821,
+      "untracked": [
+        ".dsh/rollback/session-467ccd88-3263-470a-81a1-1c724ef0b6c5.json",
+        ".dsh/rollback/session-a90ada90-2420-407d-a9fc-5b4ba30a3f02.json",
+        ".dsh/rollback/session-dad7ec58-75cf-42c3-84ee-579da2c47a2e.json",
+        "49-stlink.rules"
+      ],
+      "truncated": false,
+      "after": {
+        "commit": "2322337f22e6604ad00258945c80c05bbe4fe111",
+        "time": 1787071425036
+      }
+    },
+    {
+      "turn": 17,
+      "commit": "ef07acd39eae774f6e5f0d89c383c903f949a6fd",
+      "parent": "2322337f22e6604ad00258945c80c05bbe4fe111",
+      "time": 1787072383811,
+      "untracked": [
+        ".dsh/rollback/session-467ccd88-3263-470a-81a1-1c724ef0b6c5.json",
+        ".dsh/rollback/session-a90ada90-2420-407d-a9fc-5b4ba30a3f02.json",
+        ".dsh/rollback/session-dad7ec58-75cf-42c3-84ee-579da2c47a2e.json",
+        "49-stlink.rules"
+      ],
+      "truncated": false,
+      "after": {
+        "commit": "24ae3c2c09e8b45f2d12d6698e02b31ccad26c4c",
+        "time": 1787072452789
+      }
+    },
+    {
+      "turn": 18,
+      "commit": "9701a8b619fb415e904b37bbe11c4d14d323b601",
+      "parent": "24ae3c2c09e8b45f2d12d6698e02b31ccad26c4c",
+      "time": 1787075515102,
+      "untracked": [
+        ".dsh/rollback/session-467ccd88-3263-470a-81a1-1c724ef0b6c5.json",
+        ".dsh/rollback/session-a90ada90-2420-407d-a9fc-5b4ba30a3f02.json",
+        ".dsh/rollback/session-dad7ec58-75cf-42c3-84ee-579da2c47a2e.json",
+        "49-stlink.rules",
+        "remote_ros_ws/"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 19,
+      "commit": "a498369861d5a2ad875a2a6b05a5b64b44e519a0",
+      "parent": "9701a8b619fb415e904b37bbe11c4d14d323b601",
+      "time": 1787076057985,
+      "untracked": [
+        ".dsh/rollback/session-467ccd88-3263-470a-81a1-1c724ef0b6c5.json",
+        ".dsh/rollback/session-a90ada90-2420-407d-a9fc-5b4ba30a3f02.json",
+        ".dsh/rollback/session-dad7ec58-75cf-42c3-84ee-579da2c47a2e.json",
+        "49-stlink.rules",
+        "remote_ros_ws/"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 20,
+      "commit": "42fb7f4de494cf9dced5ecbf82e7cb17e85ea65a",
+      "parent": "a498369861d5a2ad875a2a6b05a5b64b44e519a0",
+      "time": 1787076758318,
+      "untracked": [
+        ".dsh/rollback/session-467ccd88-3263-470a-81a1-1c724ef0b6c5.json",
+        ".dsh/rollback/session-a90ada90-2420-407d-a9fc-5b4ba30a3f02.json",
+        ".dsh/rollback/session-dad7ec58-75cf-42c3-84ee-579da2c47a2e.json",
+        "49-stlink.rules",
+        "remote_ros_ws/"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 21,
+      "commit": "498930f9578ab65a42b6e7bcb56b60066bb91040",
+      "parent": "42fb7f4de494cf9dced5ecbf82e7cb17e85ea65a",
+      "time": 1787077599439,
+      "untracked": [
+        ".dsh/rollback/session-467ccd88-3263-470a-81a1-1c724ef0b6c5.json",
+        ".dsh/rollback/session-a90ada90-2420-407d-a9fc-5b4ba30a3f02.json",
+        ".dsh/rollback/session-dad7ec58-75cf-42c3-84ee-579da2c47a2e.json",
+        "49-stlink.rules",
+        "remote_ros_ws/"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 22,
+      "commit": "498930f9578ab65a42b6e7bcb56b60066bb91040",
+      "parent": "498930f9578ab65a42b6e7bcb56b60066bb91040",
+      "time": 1787077789889,
+      "untracked": [
+        ".dsh/rollback/session-467ccd88-3263-470a-81a1-1c724ef0b6c5.json",
+        ".dsh/rollback/session-a90ada90-2420-407d-a9fc-5b4ba30a3f02.json",
+        ".dsh/rollback/session-dad7ec58-75cf-42c3-84ee-579da2c47a2e.json",
+        "49-stlink.rules",
+        "remote_ros_ws/"
+      ],
+      "truncated": false
+    },
+    {
+      "turn": 23,
+      "commit": "498930f9578ab65a42b6e7bcb56b60066bb91040",
+      "parent": "498930f9578ab65a42b6e7bcb56b60066bb91040",
+      "time": 1787078026341,
+      "untracked": [
+        ".dsh/rollback/session-467ccd88-3263-470a-81a1-1c724ef0b6c5.json",
+        ".dsh/rollback/session-a90ada90-2420-407d-a9fc-5b4ba30a3f02.json",
+        ".dsh/rollback/session-dad7ec58-75cf-42c3-84ee-579da2c47a2e.json",
+        "49-stlink.rules",
+        "remote_ros_ws/"
+      ],
+      "truncated": false
+    }
+  ],
+  "rolls": [],
+  "undos": []
+}

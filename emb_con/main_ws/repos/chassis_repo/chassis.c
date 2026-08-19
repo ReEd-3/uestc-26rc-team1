@@ -158,8 +158,8 @@ void Chassis_Update(Chassis *ch)
         return;
     }
 
-    // 先执行更新PID输出，读取到当前的电机值
-    M3508_PID_Update(ch->m3508);
+    // 先读取当前电机反馈，用于里程计
+    M3508_ReadStatus(ch->m3508);
     uint16_t encoder_raw[4] = {
         ch->m3508->motors[0].position,
         ch->m3508->motors[1].position,
@@ -232,6 +232,9 @@ void Chassis_Update(Chassis *ch)
     /* 目标速度 -> 四个轮子 rpm -> 电机速度环 */
     Macnum_SetTarget(&ch->mn, vx_cmd, vy_cmd, omega_cmd);
     M3508_SetSpeedTarget(ch->m3508, ch->mn.tar_rpm);
+
+    // 设置目标后再更新 PID，避免当前拍仍使用上一拍目标导致输出 0
+    M3508_PID_Update(ch->m3508);
 
     M3508_CAN_CurrentUpdate(ch->m3508);
 }
