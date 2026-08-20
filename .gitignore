@@ -1,13 +1,14 @@
-# Build 目录
+# Build / 生成目录
 build/
 Debug/
 Release/
+MDK-ARM/
+.cache/
 
-# IDE 设置
+# IDE / 工具本地配置
 .settings/
-.cproject
-.project
-.metadata/
+.vscode/
+.dsh/
 
 # 编译中间文件
 *.o
@@ -16,6 +17,17 @@ Release/
 *.hex
 *.bin
 *.map
+*.crf
+*.lnp
+*.axf
+*.htm
+*.dep
+*.build_log.htm
+*.uvguix.*
+*.uvoptx
+*.uvprojx
+*.scvd
+*.dbgconf
 
 # 临时文件
 *.bak
