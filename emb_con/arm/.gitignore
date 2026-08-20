@@ -1,0 +1,5 @@
+# 本项目启用 STM32CubeIDE 工程文件（局部覆盖仓库根目录的 IDE 忽略规则）
+!.project
+!.cproject
+!.settings/
+!.settings/*
