@@ -48,6 +48,7 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
 volatile float g_arm_distance_mm = 0.0f;   /* 测试：正负=方向 */
+volatile uint8_t g_arm_busy = 0u;
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -166,10 +167,12 @@ void StartDefaultTask(void *argument)
   for(;;)
   {
 	  SimVision_GiveMove( 400.0f);    /* 模拟视觉：正转 400mm */
-	      vTaskDelay(pdMS_TO_TICKS(4000)); /* 等动作完成 + 锁死停留 */
+	  while (g_arm_busy) vTaskDelay(pdMS_TO_TICKS(10));   /* 等正转完成*/
+	  vTaskDelay(pdMS_TO_TICKS(4000)); /* 等动作完成 + 锁死停留 */
 
-	      SimVision_GiveMove(-400.0f);    /* 模拟视觉：反转回 400mm */
-	      vTaskDelay(pdMS_TO_TICKS(4000));
+	  SimVision_GiveMove(-400.0f);    /* 模拟视觉：反转回 400mm */
+	  while (g_arm_busy) vTaskDelay(pdMS_TO_TICKS(10));   /* 等反转完成 */
+	  vTaskDelay(pdMS_TO_TICKS(4000));
     osDelay(1);
   }
   /* USER CODE END StartDefaultTask */
@@ -229,6 +232,7 @@ void StartMotorCurTask(void *argument)
 static void SimVision_GiveMove(float distance_mm)
 {
     g_arm_distance_mm = distance_mm;      /* 写距离（float，32位原子写） */
+    g_arm_busy = 1u;
     osSemaphoreRelease(armSemHandle);     /* 给信号量（ISR 安全） —— 外部"Release" */
 }
 
@@ -248,6 +252,7 @@ void StartArmTask(void *argument)
     {
         osSemaphoreAcquire(armSemHandle, osWaitForever);   /* 阻塞等信号量 */
         Arm_MoveLock((double)g_arm_distance_mm);           /* 一次动作 */
+        g_arm_busy = 0u;
     }
 }
 
