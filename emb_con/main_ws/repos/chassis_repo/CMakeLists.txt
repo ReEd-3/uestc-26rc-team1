@@ -12,4 +12,5 @@ target_include_directories(chassis PUBLIC
 target_link_libraries(chassis PUBLIC
     m3508
     macnum
+    encoder_odo
 )

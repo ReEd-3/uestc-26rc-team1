@@ -1,0 +1,28 @@
+{
+  "version": 2,
+  "sessionId": "session-fcb5b48c-b2e8-487d-aadc-8afed694a07e",
+  "cwd": "/home/lw3/Projects/26rcteam1/uestc-26rc-team1/emb_con/main_ws",
+  "updatedAt": 1787207952415,
+  "checkpoints": [
+    {
+      "turn": 1,
+      "commit": "87a734deb701ae5d926bf4dd4070484ae8863189",
+      "parent": "a0344e6956a9443459a693c38e603bda60213e71",
+      "time": 1787207745444,
+      "untracked": [],
+      "truncated": false
+    },
+    {
+      "turn": 2,
+      "commit": "87a734deb701ae5d926bf4dd4070484ae8863189",
+      "parent": "87a734deb701ae5d926bf4dd4070484ae8863189",
+      "time": 1787207950657,
+      "untracked": [
+        ".dsh/rollback/session-fcb5b48c-b2e8-487d-aadc-8afed694a07e.json"
+      ],
+      "truncated": false
+    }
+  ],
+  "rolls": [],
+  "undos": []
+}
