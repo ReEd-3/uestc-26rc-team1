@@ -69,3 +69,7 @@ hyhq12345
 
 ReEd-3
 - 
+
+UESTCShine
+- 编写关节的状态机
+- 将状态机迁移到freertos里面
