@@ -24,6 +24,10 @@ typedef struct {
     uint16_t FL_lst_cnt;
     uint16_t FR_lst_cnt;
 
+    // 首次接收零点标志：第一次收到的计数值作为零点
+    uint8_t FL_initialized;
+    uint8_t FR_initialized;
+
     double FR_x;  // 码盘右前原始位移,m
     double FL_x;  // 码盘左前原始位移
 

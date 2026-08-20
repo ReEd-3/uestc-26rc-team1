@@ -2,7 +2,7 @@
   "version": 2,
   "sessionId": "session-dad7ec58-75cf-42c3-84ee-579da2c47a2e",
   "cwd": "/home/lw3/Projects/26rcteam1/uestc-26rc-team1/emb_con/main_ws",
-  "updatedAt": 1787106175251,
+  "updatedAt": 1787196770581,
   "checkpoints": [
     {
       "turn": 5,
@@ -353,6 +353,50 @@
       "untracked": [
         "remote_ros_ws/"
       ],
+      "truncated": false
+    },
+    {
+      "turn": 45,
+      "commit": "6b98964548c2d6bf1954fd211d9e8fa01a991739",
+      "parent": "3097ea39c8a433c79ef5544369f3f1af43ed6220",
+      "time": 1787193082689,
+      "untracked": [],
+      "truncated": false
+    },
+    {
+      "turn": 46,
+      "commit": "2106ce42298253f1147f3f33916e27167967353f",
+      "parent": "6b98964548c2d6bf1954fd211d9e8fa01a991739",
+      "time": 1787194252447,
+      "untracked": [],
+      "truncated": false
+    },
+    {
+      "turn": 47,
+      "commit": "2106ce42298253f1147f3f33916e27167967353f",
+      "parent": "2106ce42298253f1147f3f33916e27167967353f",
+      "time": 1787194637762,
+      "untracked": [],
+      "truncated": false,
+      "after": {
+        "commit": "270a9498b8589e733d536433b1b2f49a0e61c6b1",
+        "time": 1787194675969
+      }
+    },
+    {
+      "turn": 48,
+      "commit": "270a9498b8589e733d536433b1b2f49a0e61c6b1",
+      "parent": "270a9498b8589e733d536433b1b2f49a0e61c6b1",
+      "time": 1787196546838,
+      "untracked": [],
+      "truncated": false
+    },
+    {
+      "turn": 49,
+      "commit": "270a9498b8589e733d536433b1b2f49a0e61c6b1",
+      "parent": "270a9498b8589e733d536433b1b2f49a0e61c6b1",
+      "time": 1787196768306,
+      "untracked": [],
       "truncated": false
     }
   ],

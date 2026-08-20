@@ -9,6 +9,13 @@
 #define SQRT_2 1.4142135624
 #define ENCODER_ODO_PI 3.14159265358979323846
 
+/* 码盘通信命令（根据手册确认） */
+#define ENCODER_CMD_SET_MODE  0x04u  /* 设置工作模式 */
+#define ENCODER_MODE_MANUAL   0x00u  /* 手动回传模式（查询模式） */
+#define ENCODER_MODE_AUTO_VALUE 0xAAu /* 自动返回编码器值 */
+#define ENCODER_AUTO_RETURN_TIME_US 1000u /* 自动回传周期：1000us = 1ms = 1000Hz */
+#define ENCODER_CMD_READ_CNT  0x01u  /* 读取当前计数值 */
+
 /* 向指定 ID 的编码器发送 4 字节命令：LEN + ID + FUNC + DATA */
 static void EncoderOdo_SendCmd(EncoderOdo *eo, uint8_t id, uint8_t func, uint8_t data)
 {
@@ -31,22 +38,49 @@ static void EncoderOdo_SendCmd(EncoderOdo *eo, uint8_t id, uint8_t func, uint8_t
     HAL_FDCAN_Std_SendMessage(&tx_header, eo->hfdcan, cmd);
 }
 
+/* 向指定 ID 的编码器发送 5 字节命令：LEN + ID + FUNC + DATA16(小端) */
+static void EncoderOdo_SendCmd16(EncoderOdo *eo, uint8_t id, uint8_t func, uint16_t data)
+{
+    uint8_t cmd[5];
+    FDCAN_TxHeaderTypeDef tx_header;
+
+    if (eo == NULL || eo->hfdcan == NULL) {
+        return;
+    }
+
+    cmd[0] = 0x05;  // 数据长度：包括 LEN、ID、FUNC、DATA
+    cmd[1] = id;
+    cmd[2] = func;
+    cmd[3] = (uint8_t)(data & 0xFFu);
+    cmd[4] = (uint8_t)((data >> 8) & 0xFFu);
+
+    if (HAL_FDCAN_StdDefault_TxHeaderInit(&tx_header, id, 5, eo->hfdcan) != HAL_OK) {
+        return;
+    }
+
+    HAL_FDCAN_Std_SendMessage(&tx_header, eo->hfdcan, cmd);
+}
+
 void EncoderOdo_Init(EncoderOdo *eo, FDCAN_HandleTypeDef *hfdcan) 
 {
     eo->hfdcan = hfdcan;
     FDCAN_FilterTypeDef filter = {0};
     filter.IdType       = FDCAN_STANDARD_ID;
     filter.FilterType   = FDCAN_FILTER_MASK;
-    filter.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
+    // 原 FIFO 接收配置（保留注释）
+    // filter.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
+    filter.FilterConfig = FDCAN_FILTER_TO_RXBUFFER;  // 改为 BUFFER 接收，同 M3508
     filter.FilterID2    = 0x7FF;   // 全匹配
 
-    // 接收 ID=1 的码盘
+    // 接收 ID=1 的码盘 -> RxBuffer0
     filter.FilterIndex = 0;
+    filter.RxBufferIndex = 0;
     filter.FilterID1   = 1;
     HAL_FDCAN_ConfigFilter(hfdcan, &filter);
 
-    // 接收 ID=2 的码盘
+    // 接收 ID=2 的码盘 -> RxBuffer1
     filter.FilterIndex = 1;
+    filter.RxBufferIndex = 1;
     filter.FilterID1   = 2;
     HAL_FDCAN_ConfigFilter(hfdcan, &filter);
 
@@ -57,6 +91,8 @@ void EncoderOdo_Init(EncoderOdo *eo, FDCAN_HandleTypeDef *hfdcan)
 
     eo->FL_cur_cnt = 0;
     eo->FR_cur_cnt = 0;
+    eo->FL_initialized = 0;
+    eo->FR_initialized = 0;
 
     eo->abs_x = 0;
     eo->abs_y = 0;
@@ -64,24 +100,44 @@ void EncoderOdo_Init(EncoderOdo *eo, FDCAN_HandleTypeDef *hfdcan)
     /* 指令 0x07：设置编码器值递增方向，0x00=顺时针 */
     EncoderOdo_SendCmd(eo, eo->FL_id, 0x07, 0x00);
     EncoderOdo_SendCmd(eo, eo->FR_id, 0x07, 0x00);
+
+    /* 设置为自动回传模式（编码器值），回传周期 1000us = 1ms = 1000Hz */
+    /* 原手动回传模式（保留注释）
+    EncoderOdo_SendCmd(eo, eo->FL_id, ENCODER_CMD_SET_MODE, ENCODER_MODE_MANUAL);
+    EncoderOdo_SendCmd(eo, eo->FR_id, ENCODER_CMD_SET_MODE, ENCODER_MODE_MANUAL);
+    */
+    // 先设置自动回传时间 1000us
+    EncoderOdo_SendCmd16(eo, eo->FL_id, 0x05, ENCODER_AUTO_RETURN_TIME_US);
+    EncoderOdo_SendCmd16(eo, eo->FR_id, 0x05, ENCODER_AUTO_RETURN_TIME_US);
+    // 再设置为自动返回编码器值
+    EncoderOdo_SendCmd(eo, eo->FL_id, ENCODER_CMD_SET_MODE, ENCODER_MODE_AUTO_VALUE);
+    EncoderOdo_SendCmd(eo, eo->FR_id, ENCODER_CMD_SET_MODE, ENCODER_MODE_AUTO_VALUE);
 }
 
-// 获取初始编码器值：发送指令 0x06 将当前编码器值清零
+// 获取初始编码器值：软件零点（第一次收到的码盘值作为零点），不再发送清零指令
 void EncoderOdo_SetBeginCnt(EncoderOdo *eo)
 {
     if (eo == NULL || eo->hfdcan == NULL) {
         return;
     }
 
-    /* 指令 0x06：设置当前位置值为零点，设置后当前编码器值为 0 */
+    // 零点不再通过指令设置，改为软件零点：第一次收到的码盘值作为零点
+    /* 原设置500KHZ波特率（保留注释）
+    EncoderOdo_SendCmd(eo, eo->FL_id, 0x03, 0x00);
+    EncoderOdo_SendCmd(eo, eo->FR_id, 0x03, 0x00);
+    */
+    /* 原 0x06 设置当前位置值为零点（保留注释）
     EncoderOdo_SendCmd(eo, eo->FL_id, 0x06, 0x00);
     EncoderOdo_SendCmd(eo, eo->FR_id, 0x06, 0x00);
+    */
 
     /* 本地里程计状态同步清零 */
     eo->FL_cur_cnt = 0;
     eo->FR_cur_cnt = 0;
     eo->FL_lst_cnt = 0;
     eo->FR_lst_cnt = 0;
+    eo->FL_initialized = 0;
+    eo->FR_initialized = 0;
     eo->abs_x = 0.0;
     eo->abs_y = 0.0;
 }
@@ -102,12 +158,18 @@ int16_t EncoderOdo_Cnt_Solver(uint16_t cur_cnt, uint16_t lst_cnt)
 // 读取码盘计数并且解算出xy的位移
 void EncoderOdo_Update(EncoderOdo *eo)
 {
-    uint8_t cnt_data[7];
+    uint8_t cnt_data[8];
     FDCAN_RxHeaderTypeDef header;
     if (HAL_FDCAN_StdDefault_RxHeaderInit(&header, eo->FL_id, 7, eo->hfdcan) != HAL_OK) {
         return;
     }
-    while (HAL_FDCAN_Std_ReceiveMessage(&header, eo->hfdcan, 0, cnt_data) == HAL_OK) { 
+
+    /* 手动回传：读取前先向两个码盘发送读取指令 */
+    // EncoderOdo_SendCmd(eo, eo->FL_id, ENCODER_CMD_READ_CNT, 0x00);
+    // EncoderOdo_SendCmd(eo, eo->FR_id, ENCODER_CMD_READ_CNT, 0x00);
+
+    /* 原 FIFO 轮询接收（保留注释）
+    while (HAL_FDCAN_Std_ReceiveMessage(&header, eo->hfdcan, FDCAN_RX_FIFO0, cnt_data) == HAL_OK) { 
         // 读到的是左前轮，更新数据
         if (cnt_data[0] == 7 && cnt_data[1] == 1 && cnt_data[2] == 1) {  // 数据长度，ID为1，指令为发送cnt
             eo->FL_lst_cnt = eo->FL_cur_cnt;
@@ -123,6 +185,46 @@ void EncoderOdo_Update(EncoderOdo *eo)
             int16_t delta_cnt = EncoderOdo_Cnt_Solver(eo->FR_cur_cnt, eo->FR_lst_cnt);
             eo->abs_x -= (double)delta_cnt / ENCODER_ODO_CNT_PER_REV * ENCODER_ODO_PI * SQRT_2 * eo->radius;
             eo->abs_y -= (double)delta_cnt / ENCODER_ODO_CNT_PER_REV * ENCODER_ODO_PI * SQRT_2 * eo->radius;
+        }
+    }
+    */
+
+    // 使用 RxBuffer 接收（同 M3508 逻辑），只检查目标 ID 对应的 Buffer
+    // 左前轮 ID=1 -> RxBuffer0
+    if (HAL_FDCAN_IsRxBufferMessageAvailable(eo->hfdcan, 0)) {
+        if (HAL_FDCAN_GetRxMessage(eo->hfdcan, 0, &header, cnt_data) == HAL_OK) {
+            if (cnt_data[0] == 7 && cnt_data[1] == 1 && cnt_data[2] == 1) {  // 数据长度，ID为1，指令为发送cnt
+                eo->FL_cur_cnt = (uint16_t)(cnt_data[3] | (cnt_data[4] << 8));
+                if (!eo->FL_initialized) {
+                    // 第一次收到的计数值作为零点
+                    eo->FL_lst_cnt = eo->FL_cur_cnt;
+                    eo->FL_initialized = 1;
+                } else {
+                    int16_t delta_cnt = EncoderOdo_Cnt_Solver(eo->FL_cur_cnt, eo->FL_lst_cnt);
+                    eo->abs_x += (double)delta_cnt / ENCODER_ODO_CNT_PER_REV * ENCODER_ODO_PI * SQRT_2 * eo->radius;
+                    eo->abs_y -= (double)delta_cnt / ENCODER_ODO_CNT_PER_REV * ENCODER_ODO_PI * SQRT_2 * eo->radius;
+                    eo->FL_lst_cnt = eo->FL_cur_cnt;
+                }
+            }
+        }
+    }
+
+    // 右前轮 ID=2 -> RxBuffer1
+    if (HAL_FDCAN_IsRxBufferMessageAvailable(eo->hfdcan, 1)) {
+        if (HAL_FDCAN_GetRxMessage(eo->hfdcan, 1, &header, cnt_data) == HAL_OK) {
+            if (cnt_data[0] == 7 && cnt_data[1] == 2 && cnt_data[2] == 1) {
+                eo->FR_cur_cnt = (uint16_t)(cnt_data[3] | (cnt_data[4] << 8));
+                if (!eo->FR_initialized) {
+                    // 第一次收到的计数值作为零点
+                    eo->FR_lst_cnt = eo->FR_cur_cnt;
+                    eo->FR_initialized = 1;
+                } else {
+                    int16_t delta_cnt = EncoderOdo_Cnt_Solver(eo->FR_cur_cnt, eo->FR_lst_cnt);
+                    eo->abs_x -= (double)delta_cnt / ENCODER_ODO_CNT_PER_REV * ENCODER_ODO_PI * SQRT_2 * eo->radius;
+                    eo->abs_y -= (double)delta_cnt / ENCODER_ODO_CNT_PER_REV * ENCODER_ODO_PI * SQRT_2 * eo->radius;
+                    eo->FR_lst_cnt = eo->FR_cur_cnt;
+                }
+            }
         }
     }
 }

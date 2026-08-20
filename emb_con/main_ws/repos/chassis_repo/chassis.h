@@ -54,6 +54,7 @@ typedef struct {
 } Chassis;
 
 void Chassis_Init(Chassis *ch, M3508_CAN_All *m3508, EncoderOdo *eo, const Chassis_Config *cfg);
+void Chassis_ResetEncoderPose(Chassis *ch);
 void Chassis_SetPose(Chassis *ch, double x, double y, double yaw);
 void Chassis_ResetPose(Chassis *ch, const uint16_t encoder_now[4]);
 void Chassis_SetVelocity(Chassis *ch, double vx, double vy, double omega);
