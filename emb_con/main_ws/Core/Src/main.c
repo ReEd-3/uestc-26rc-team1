@@ -20,6 +20,7 @@
 #include "main.h"
 #include "FreeRTOS.h"
 #include "cmsis_os2.h"
+#include "encoder_odo.h"
 #include "fdcan.h"
 #include "tim.h"
 #include "usart.h"
@@ -73,6 +74,7 @@ static void uart_tx_hook(const uint8_t *data, uint16_t len) {
 // 底盘和电机总线句柄
 Chassis ch;
 M3508_CAN_All m3508;
+EncoderOdo eo;
 
 // 底盘配置
 Chassis_Config cfg = {0.075, 0.305, 0.2905, M3508_GEAR_RATIO, 
@@ -162,17 +164,23 @@ int main(void)
   m3508.motors[2].rotation = 1;  // 左后轮
   m3508.motors[3].rotation = -1;  // 右后轮
 
-
   HAL_FDCAN_Start(&hfdcan1);
+  HAL_FDCAN_Start(&hfdcan3);
+
+  // 初始化码盘
+  EncoderOdo_Init(&eo, &hfdcan3);
+  EncoderOdo_SetBeginCnt(&eo);
+
   M3508_SpeedPID_Init(&m3508, 22.0, 0.07, 0.07, 0.001);
 
+  // 初始化滤波器
   Int16_IIRFilter_Init(&m3508.motors[0].speed_pid.iir_filter, 0.9);
   Int16_IIRFilter_Init(&m3508.motors[1].speed_pid.iir_filter, 0.9);
   Int16_IIRFilter_Init(&m3508.motors[2].speed_pid.iir_filter, 0.9);
   Int16_IIRFilter_Init(&m3508.motors[3].speed_pid.iir_filter, 0.9);
 
-  // 初始化
-  Chassis_Init(&ch, &m3508, &cfg);
+  // 初始化底盘
+  Chassis_Init(&ch, &m3508, &eo, &cfg);
 
   // 把电机安装方向同步给麦轮里程计，保证反装轮子的编码器方向也正确
   ch.mn.rotation[0] = m3508.motors[0].rotation;

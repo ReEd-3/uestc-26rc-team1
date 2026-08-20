@@ -3,12 +3,7 @@
 
 #include "fdcan_std.h"
 #include "stm32h7xx_hal.h"
-#include "stm32h7xx_hal_fdcan.h"
 
-#define ENCODER_RADIUS 0.0
-
-#define FL_ID 1
-#define FR_ID 2
 
 // 码盘结构体
 typedef struct {
@@ -34,35 +29,17 @@ typedef struct {
 
     double abs_x;  // 码盘绝对位移
     double abs_y;  // 
-    double omega;  // 码盘当前旋转角度
 } EncoderOdo;
 
-void EncoderOdo_Init(EncoderOdo *eo, FDCAN_HandleTypeDef *hfdcan) 
-{
+void EncoderOdo_Init(EncoderOdo *eo, FDCAN_HandleTypeDef *hfdcan);
 
-}
- 
-void EncoderOdo_Update(EncoderOdo *eo, uint16_t FL_cnt, uint16_t FR_cnt)
-{
-    uint8_t cnt_data[7];
-    FDCAN_RxHeaderTypeDef header;
-    if (HAL_FDCAN_StdDefault_RxHeaderInit(&header, eo->FL_id, 7, eo->hfdcan) != HAL_OK) {
-        return;
-    }
-    if (HAL_FDCAN_Std_ReceiveMessage(header, eo->hfdcan, 0, cnt_data) != HAL_OK) { 
-        return;
-    } 
-    // 读到的是右前轮，更新数据
-    if (cnt_data[0] == 7 && cnt_data[1] == 1 && cnt_data[2] == 1) {  // 数据长度，ID为1，指令为发送cnt
-        eo->FL_lst_cnt = eo->FL_cur_cnt;
-        eo->FL_cur_cnt = (uint16_t)(cnt_data[0] & (cnt_data[1] << 8));
-    }
-    // 左前轮同理
-    else if (cnt_data[0] == 7 && cnt_data[1] == 2 && cnt_data[2] == 1) {
-        eo->FR_lst_cnt = eo->FR_cur_cnt;
-        eo->FR_cur_cnt = (uint16_t)(cnt_data[0] & (cnt_data[1] << 8));
-    }
+// 计算初始位置编码器值 
+void EncoderOdo_SetBeginCnt(EncoderOdo *eo);
 
-}
+// 计算编码器改变量
+int16_t EncoderOdo_Cnt_Solver(uint16_t cur_cnt, uint16_t lst_cnt);
+
+// 读取码盘计数并且解算出xy的位移
+void EncoderOdo_Update(EncoderOdo *eo);
 
 #endif

@@ -2,7 +2,7 @@
   "version": 2,
   "sessionId": "session-a0137239-eb36-46dd-9401-e03f68ca06e7",
   "cwd": "/run/media/lw3/D/Emb_Sys/projects/26rcteam1/emb_con/main_ws",
-  "updatedAt": 1787130469893,
+  "updatedAt": 1787188459331,
   "checkpoints": [
     {
       "turn": 1,
@@ -65,6 +65,78 @@
         "repos/encoder_odo/encoder_odo.c",
         "repos/encoder_odo/encoder_odo.h"
       ],
+      "truncated": false
+    },
+    {
+      "turn": 6,
+      "commit": "f642ba93fc5b3d25bd8ad25947c1f7f09c47df2a",
+      "parent": "06e8630877403fdd06ca530ddf47bd1f69192680",
+      "time": 1787152951552,
+      "untracked": [],
+      "truncated": false
+    },
+    {
+      "turn": 7,
+      "commit": "fc16d58eb3ff6f1a924f97c5991662b5ad419d8b",
+      "parent": "f642ba93fc5b3d25bd8ad25947c1f7f09c47df2a",
+      "time": 1787154315581,
+      "untracked": [],
+      "truncated": false
+    },
+    {
+      "turn": 8,
+      "commit": "b737ce75f36111b9d3eeb9c1af3db1c7668bba22",
+      "parent": "fc16d58eb3ff6f1a924f97c5991662b5ad419d8b",
+      "time": 1787155959336,
+      "untracked": [],
+      "truncated": false,
+      "after": {
+        "commit": "f12849b0aa16ef91c3ffa3b452a03e9d8bd2a4ae",
+        "time": 1787155992336
+      }
+    },
+    {
+      "turn": 9,
+      "commit": "eccbe9297ee71e4ba1356584f16fcafb1e7a43b5",
+      "parent": "f12849b0aa16ef91c3ffa3b452a03e9d8bd2a4ae",
+      "time": 1787158443939,
+      "untracked": [],
+      "truncated": false,
+      "after": {
+        "commit": "97882fe2ac9df44d097f207e5c71ffffe934bef2",
+        "time": 1787158542980
+      }
+    },
+    {
+      "turn": 10,
+      "commit": "97882fe2ac9df44d097f207e5c71ffffe934bef2",
+      "parent": "97882fe2ac9df44d097f207e5c71ffffe934bef2",
+      "time": 1787158671297,
+      "untracked": [],
+      "truncated": false
+    },
+    {
+      "turn": 11,
+      "commit": "7e36fcf1d47bc2ab936aaa2f0bfad937be473967",
+      "parent": "97882fe2ac9df44d097f207e5c71ffffe934bef2",
+      "time": 1787186939175,
+      "untracked": [],
+      "truncated": false
+    },
+    {
+      "turn": 12,
+      "commit": "03bbad012e8a94afd3043b16bad63f0257bb9528",
+      "parent": "7e36fcf1d47bc2ab936aaa2f0bfad937be473967",
+      "time": 1787187470956,
+      "untracked": [],
+      "truncated": false
+    },
+    {
+      "turn": 13,
+      "commit": "30305d9fe594b262c6b9c4b86e1b868c6bbaa438",
+      "parent": "03bbad012e8a94afd3043b16bad63f0257bb9528",
+      "time": 1787188458481,
+      "untracked": [],
       "truncated": false
     }
   ],

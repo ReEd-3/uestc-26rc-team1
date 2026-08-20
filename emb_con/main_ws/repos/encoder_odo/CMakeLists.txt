@@ -2,7 +2,7 @@ add_library(encoder_odo STATIC
     encoder_odo.c
 )
 
-target_include_directories(
+target_include_directories(encoder_odo PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 

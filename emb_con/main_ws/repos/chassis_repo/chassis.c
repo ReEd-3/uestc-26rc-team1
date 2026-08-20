@@ -30,7 +30,7 @@ static void Chassis_ResetPid(Chassis *ch)
 }
 
 /* 初始化底盘句柄并保存电机、麦轮和 PID 参数 */
-void Chassis_Init(Chassis *ch, M3508_CAN_All *m3508, const Chassis_Config *cfg)
+void Chassis_Init(Chassis *ch, M3508_CAN_All *m3508, EncoderOdo *eo, const Chassis_Config *cfg)
 {
     if (ch == NULL || m3508 == NULL || cfg == NULL) {
         return;
@@ -38,6 +38,7 @@ void Chassis_Init(Chassis *ch, M3508_CAN_All *m3508, const Chassis_Config *cfg)
 
     // 电机总线
     ch->m3508 = m3508;
+    ch->eo = eo;
 
     // 麦轮初始化
     Macnum_Init(&ch->mn,
@@ -45,7 +46,7 @@ void Chassis_Init(Chassis *ch, M3508_CAN_All *m3508, const Chassis_Config *cfg)
                 cfg->half_wheelbase,
                 cfg->half_track,
                 cfg->gear_ratio);
-
+    
     // 初始底盘停止
     ch->mode = CHASSIS_MODE_STOP;
 
@@ -169,6 +170,7 @@ void Chassis_Update(Chassis *ch)
 
     /* 更新里程计，rea_x/rea_y/yaw 会更新 */
     Macnum_PositionStateUpdate(&ch->mn, encoder_raw);
+    EncoderOdo_Update(ch->eo);
 
     double vx_cmd = 0.0;
     double vy_cmd = 0.0;

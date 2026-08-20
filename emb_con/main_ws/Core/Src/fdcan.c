@@ -150,9 +150,9 @@ void MX_FDCAN3_Init(void)
   hfdcan3.Init.DataTimeSeg1 = 1;
   hfdcan3.Init.DataTimeSeg2 = 1;
   hfdcan3.Init.MessageRAMOffset = 0;
-  hfdcan3.Init.StdFiltersNbr = 0;
+  hfdcan3.Init.StdFiltersNbr = 2;
   hfdcan3.Init.ExtFiltersNbr = 0;
-  hfdcan3.Init.RxFifo0ElmtsNbr = 0;
+  hfdcan3.Init.RxFifo0ElmtsNbr = 8;
   hfdcan3.Init.RxFifo0ElmtSize = FDCAN_DATA_BYTES_8;
   hfdcan3.Init.RxFifo1ElmtsNbr = 0;
   hfdcan3.Init.RxFifo1ElmtSize = FDCAN_DATA_BYTES_8;
