@@ -42,16 +42,10 @@ void Motor_AppInit(void) {
     m3508_init_status = 0;
 
 
-
-
-    //M3508_SpeedPID_Init(&m3508_can_1, 2.0, 0.1, 0.0, 0.001);// 速度环 PID 参数设置
-    //M3508_PositionPID_Init(&m3508_can_1, 6, 0.0, 0.1, 0.001);// 位置环 PID 参数设置
-
     M3508_PID_SetIntLim(&m3508_can_1.motors[0], M3508_SPEEDPID_MODE, 600);// 速度环积分限幅
     M3508_PID_SetIntLim(&m3508_can_1.motors[0], M3508_POSITIONPID_MODE, 600);// 位置环积分限幅
 
-    //M3508_IIRFilter_SetAlpha(&m3508_can_1.motors[0], M3508_SPEEDPID_MODE, 0.8);// 速度环滤波
-    //M3508_IIRFilter_SetAlpha(&m3508_can_1.motors[0], M3508_POSITIONPID_MODE, 0.9);// 位置环滤波（压静止抖动）
+
 
     target_rpm[0] = 0; // 位置目标初始 0，首拍会吸附到当前位置
     M3508_SetPositionTarget(&m3508_can_1, target_rpm);// 写入位置环目标
@@ -113,52 +107,64 @@ void VOFA_Send(void) {
 #define ARM_TICKS_PER_MM      819.2f   /* mm→转子计数换算（1 输出圈=157286 计数≈192mm，按机械改） */
 #define ARM_SPEED_RAW          5000.0  /* 匀速目标速度 */
 #define ARM_ARRIVE_THRESHOLD   300     /* 到位判定阈值（计数） */
-#define ARM_PHASE_TIMEOUT_MS   60000   /* 每段超时保护（防卡死） */
+#define ARM_PHASE_TIMEOUT_MS   6000   /* 每段超时保护（防卡死） */
 #define ARM_FEEDBACK_TIMEOUT_MS 2000     /* 等待反馈就绪上限（超时=硬件问题，软件不动作） */
 
 volatile uint32_t dbg_arm_alive = 0;     /* 心跳：移动段每轮自增，Watch 看它在涨=在跑 */
 volatile double dbg_arm_v = 0.0;   /* 规划推进速度（计数/ms）调试用 */
 
-void Arm_MoveLock(double distance_mm)
+void Arm_MoveLock(uint8_t can_id, double distance_mm)
 {
+    if (can_id < 1 || can_id > 8) return;
+    M3508_HandleTypeDef *motor = &m3508_can_1.motors[can_id - 1];
 
-	dbg_arm_alive++;
+    /* ===== 封装点1：自动使能该电机（含 Rx 滤波器配置），调用者无需管初始化位掩码 ===== */
+    if (M3508_MotorEnable(&m3508_can_1, can_id) != HAL_OK) return;
 
-	/* 1) 有界等待反馈就绪 */
-	uint32_t tw = HAL_GetTick();
-	while (!M3508_IsFeedbackReady()) {
-		if ((HAL_GetTick() - tw) > ARM_FEEDBACK_TIMEOUT_MS) { dbg_arm_phase = 0; return; }
-	    vTaskDelay(pdMS_TO_TICKS(5));
-	}
-	if (distance_mm == 0.0) return;
+    dbg_arm_alive++;
 
-    const int    dir  = (distance_mm >= 0.0) ? 1 : -1;   /* 正=正转；负=反转 */
-    const double dist = (distance_mm >= 0.0 ? distance_mm : -distance_mm) * ARM_TICKS_PER_MM; /* 移动距离（转子计数>0） */
+    /* 1) 有界等待反馈就绪 */
+    uint32_t tw = HAL_GetTick();
+    while (!M3508_IsFeedbackReady()) {
+        if ((HAL_GetTick() - tw) > ARM_FEEDBACK_TIMEOUT_MS) { dbg_arm_phase = 0; return; }
+        vTaskDelay(pdMS_TO_TICKS(5));
+    }
+    if (distance_mm == 0.0) return;
 
-    /* 2) 移动段：串级位置斜坡 —— 时间比例推进（抗调度抖动），1ms 粒度 */
+    uint8_t idx = can_id - 1;   /* 目标数组通道 = 数组下标 */
+    const int    dir  = (distance_mm >= 0.0) ? 1 : -1;
+    const double dist = (distance_mm >= 0.0 ? distance_mm : -distance_mm) * ARM_TICKS_PER_MM;
 
-    /* ===== 移动段参数：平滑跟坡（慢斜坡 + 低微分） ===== */
-    M3508_SpeedPID_MotorInit(&m3508_can_1.motors[0],    1.2, 0.01, 0.0,  0.001);
-    M3508_PositionPID_MotorInit(&m3508_can_1.motors[0], 4.5, 0.0,  0.05, 0.001);
-    M3508_IIRFilter_SetAlpha(&m3508_can_1.motors[0], M3508_SPEEDPID_MODE,   0.6);
-    M3508_IIRFilter_SetAlpha(&m3508_can_1.motors[0], M3508_POSITIONPID_MODE, 0.8);
+    /* 2) 移动段：梯形加减速位置斜坡 —— 时间比例推进（抗调度抖动），1ms 粒度 */
 
-    M3508_PIDMode_Switch(&m3508_can_1.motors[0], M3508_CASCADE_MODE);
-    target_rpm[0] = m3508_can_1.motors[0].position;
-    M3508_SetPositionTarget(&m3508_can_1, target_rpm);
+    /* ===== 移动段参数：沿用你调好的那组 ===== */
+    M3508_SpeedPID_MotorInit(motor,    1.2, 0.01, 0.0,  0.001);
+    M3508_PositionPID_MotorInit(motor, 3.5, 0.0,  0.05, 0.001);
+    M3508_IIRFilter_SetAlpha(motor, M3508_SPEEDPID_MODE,   0.6);
+    M3508_IIRFilter_SetAlpha(motor, M3508_POSITIONPID_MODE, 0.8);
+
+    M3508_PIDMode_Switch(motor, M3508_CASCADE_MODE);
+
+    /* 目标数组：只改 idx 这一路，其余保持各自当前目标（多电机互不拉偏） */
+    osMutexAcquire(motorDataMutexHandle, osWaitForever);
+    double tgt8[8];
+    for (int k = 0; k < 8; k++) tgt8[k] = m3508_can_1.motors[k].position_pid.target;
+    tgt8[idx] = motor->position;
+    M3508_SetPositionTarget(&m3508_can_1, tgt8);
+    osMutexRelease(motorDataMutexHandle);
 
     const double step_per_ms = ((double)ARM_SPEED_RAW * M3508_ENCODER_RESOLUTION) / 60000.0; /* 巡航（计数/ms） */
     const double accel = 3.0;    /* 加减速斜率（计数/ms²），调 2~6 */
 
     int64_t  travel = 0;
-    uint16_t last   = m3508_can_1.motors[0].position;
-    int64_t  tgt    = (int64_t)target_rpm[0];
+    uint16_t last   = motor->position;
+    int64_t  tgt    = (int64_t)tgt8[idx];
     uint32_t t0     = HAL_GetTick();
     uint32_t t_prev = t0;
+    uint32_t t_last_move = HAL_GetTick();   /*最近一次收到位置变化的时间 */
     double   v_now  = 0.0;
 
-    while ((int64_t)(dir * travel) < (int64_t)(dist - ARM_ARRIVE_THRESHOLD))
-    {
+    while ((int64_t)(dir * travel) < (int64_t)(dist - ARM_ARRIVE_THRESHOLD)) {
         uint32_t now = HAL_GetTick();
         uint32_t dt  = now - t_prev;
         t_prev = now;
@@ -171,14 +177,15 @@ void Arm_MoveLock(double distance_mm)
             double v_stop = sqrt(2.0 * accel * remaining);
             if (v_now > v_stop) v_now = v_stop;             /* 进入减速 */
         }
-        dbg_arm_v = v_now;                                 /* 镜像规划速度 */
+        if (v_now < 1.0) v_now = 1.0;                       /* 最低速保护：防到位前爬行 */
+        dbg_arm_v = v_now;                                  /* 镜像规划速度 */
 
         osMutexAcquire(motorDataMutexHandle, osWaitForever);
         tgt += (int64_t)(dir * v_now * (double)dt);
-        target_rpm[0] = (double)tgt;
-        M3508_SetPositionTarget(&m3508_can_1, target_rpm);
+        tgt8[idx] = (double)tgt;
+        M3508_SetPositionTarget(&m3508_can_1, tgt8);
         {   /* 反馈累计行程（过零处理） */
-            uint16_t cur = m3508_can_1.motors[0].position;
+            uint16_t cur = motor->position;
             int16_t  dl  = (int16_t)(cur - last);
             last = cur;
             if (dl >  4096) dl -= 8192;
@@ -190,28 +197,23 @@ void Arm_MoveLock(double distance_mm)
         dbg_arm_travel = travel;
         dbg_arm_alive++;
         if ((HAL_GetTick() - t0) > ARM_PHASE_TIMEOUT_MS) break;
+        if ((now - t_last_move) > 500) break;  /* 新增：>0.5s 位置没变 → 该电机不在动(未接/堵死)，快速退出 */
         vTaskDelay(pdMS_TO_TICKS(1));
     }
-    /* 3) 停斜坡 → 等物理停稳（留惯性余量） */
+
+    /* 3) 停斜坡 → 等物理停稳 */
     osMutexAcquire(motorDataMutexHandle, osWaitForever);
-    target_rpm[0] = last;                              /* 停住目标，让过冲自然收敛 */
-    M3508_SetPositionTarget(&m3508_can_1, target_rpm);
+    tgt8[idx] = last;
+    M3508_SetPositionTarget(&m3508_can_1, tgt8);
     osMutexRelease(motorDataMutexHandle);
     vTaskDelay(pdMS_TO_TICKS(150));
 
-    /* 4) 锁死段：直接位置环（刚度最大），保持到下次调用 */
-    //dbg_arm_phase = 2;
-
-    /* ===== 锁死段参数：高刚度 + 阻尼（死区在驱动层已加，静止不抖） ===== */
-    M3508_PositionPID_MotorInit(&m3508_can_1.motors[0], 12.0, 0.0, 0.15, 0.001);
-    M3508_IIRFilter_SetAlpha(&m3508_can_1.motors[0], M3508_POSITIONPID_MODE, 0.85);
-
-    M3508_PIDMode_Switch(&m3508_can_1.motors[0], M3508_POSITIONPID_MODE);
+    /* 4) 锁死段：直接位置环 */
+    M3508_PositionPID_MotorInit(motor, 12.0, 0.0, 0.15, 0.001);
+    M3508_IIRFilter_SetAlpha(motor, M3508_POSITIONPID_MODE, 0.85);
+    M3508_PIDMode_Switch(motor, M3508_POSITIONPID_MODE);
     osMutexAcquire(motorDataMutexHandle, osWaitForever);
-    target_rpm[0] = m3508_can_1.motors[0].position;   /* 锁在停稳后的真实位置 */
-    M3508_SetPositionTarget(&m3508_can_1, target_rpm);
+    tgt8[idx] = motor->position;
+    M3508_SetPositionTarget(&m3508_can_1, tgt8);
     osMutexRelease(motorDataMutexHandle);
-
-    //dbg_arm_phase = 3;                                 /* 完成；返回后保持锁定 */
-    /* PID/发电流任务继续运行 → 保持锁定，直到下次调用 */
 }

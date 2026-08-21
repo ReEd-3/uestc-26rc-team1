@@ -58,6 +58,7 @@ typedef struct {
 HAL_StatusTypeDef M3508_Init(M3508_HandleTypeDef *motor, FDCAN_HandleTypeDef *hfdcan, uint8_t can_id, M3508_PID_Mode mode, double max_speed);
 HAL_StatusTypeDef M3508_SetCurrent(M3508_CAN_All *m3508_can);
 HAL_StatusTypeDef M3508_CAN_Init(M3508_CAN_All *m3508_can, uint8_t motor_ids, FDCAN_HandleTypeDef *hfdcan);
+HAL_StatusTypeDef M3508_MotorEnable(M3508_CAN_All *m3508_can, uint8_t can_id);  // 运行时使能单个电机(含Rx滤波器配置)
 HAL_StatusTypeDef M3508_ReadStatus(M3508_CAN_All *m3508_can);
 uint8_t M3508_IsFeedbackReady(void);   // 是否已收到过至少一帧 0x201 真实反馈
 

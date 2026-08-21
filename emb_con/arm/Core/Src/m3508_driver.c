@@ -82,6 +82,27 @@ HAL_StatusTypeDef M3508_CAN_Init(M3508_CAN_All *m3508_can, uint8_t motor_ids, FD
     return HAL_OK; // 初始化成功
 }
 
+
+// 运行时单独使能一个电机：配置其 Rx 滤波器并置 ON（重复调用无副作用）
+HAL_StatusTypeDef M3508_MotorEnable(M3508_CAN_All *m3508_can, uint8_t can_id) {
+    if (m3508_can == NULL || can_id < 1 || can_id > 8) return HAL_ERROR;
+    uint8_t i = can_id - 1;                       // 数组下标 = CAN ID - 1
+    if (m3508_can->motors[i].status == M3508_ON) return HAL_OK;
+
+    FDCAN_FilterTypeDef f = {0};
+    f.IdType       = FDCAN_STANDARD_ID;
+    f.FilterType   = FDCAN_FILTER_MASK;
+    f.FilterID2    = 0x7FF;                        // 全掩码：精确匹配
+    f.FilterConfig = FDCAN_FILTER_TO_RXBUFFER;
+    f.FilterIndex   = i;
+    f.RxBufferIndex = i;
+    f.FilterID1     = M3508_CAN_ID_BASE + can_id;  // 反馈帧 ID = 0x200 + ID
+    if (HAL_FDCAN_ConfigFilter(m3508_can->hfdcan, &f) != HAL_OK) return HAL_ERROR;
+
+    m3508_can->motors[i].status = M3508_ON;
+    return HAL_OK;
+}
+
 // 设置一整个CAN的电机电流
 HAL_StatusTypeDef M3508_SetCurrent(M3508_CAN_All *m3508_can) {
 
