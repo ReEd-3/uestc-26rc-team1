@@ -243,7 +243,7 @@ void M3508_PositionPID_Init(M3508_CAN_All *m3508_can, double Kp, double Ki, doub
 void M3508_PID_Update(M3508_CAN_All *m3508_can) {
 
     /* 读取所有电机反馈 */
-    M3508_ReadStatus(m3508_can);
+    // M3508_ReadStatus(m3508_can);
 
     /* 对每个电机按 PID 模式进行 PID 计算 */
     for (int i = 0; i < 8; i++) {

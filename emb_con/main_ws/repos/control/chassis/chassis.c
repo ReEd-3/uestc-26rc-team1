@@ -189,7 +189,7 @@ void Chassis_Update(Chassis *ch)
 
     /* 更新里程计，rea_x/rea_y/yaw 会更新 */
     Macnum_PositionStateUpdate(&ch->mn, encoder_raw);
-    EncoderOdo_Update(ch->eo);
+    // EncoderOdo_Update(ch->eo);
 
     double vx_cmd = 0.0;
     double vy_cmd = 0.0;
