@@ -9,4 +9,6 @@ target_include_directories(task1 PUBLIC
 target_link_libraries(task1 PUBLIC
     stm32cubemx
     chassis
+    basic_dependencies
+    common_tasks
 )

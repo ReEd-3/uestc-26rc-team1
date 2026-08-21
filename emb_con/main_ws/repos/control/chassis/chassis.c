@@ -2,6 +2,10 @@
 #include "app.h"
 #include <math.h>
 
+// 有关保护变量读写的头文件
+#include "FreeRTOS.h"
+#include "task.h"
+
 #ifndef CHASSIS_PI
 #define CHASSIS_PI 3.14159265358979323846
 #endif
@@ -191,6 +195,14 @@ void Chassis_Update(Chassis *ch)
     Macnum_PositionStateUpdate(&ch->mn, encoder_raw);
     // EncoderOdo_Update(ch->eo);
 
+    double cur_x, cur_y;
+
+    // 只在这里临界区读一次，防止写入同时读取
+    taskENTER_CRITICAL();
+    cur_x = ch->eo->abs_x;
+    cur_y = ch->eo->abs_y;
+    taskEXIT_CRITICAL();
+
     double vx_cmd = 0.0;
     double vy_cmd = 0.0;
     double omega_cmd = 0.0;
@@ -210,8 +222,8 @@ void Chassis_Update(Chassis *ch)
             ch->pid_y.dt = ch->dt;
             ch->pid_yaw.dt = ch->dt;
 
-            double err_x = ch->target_x - ch->eo->abs_x;
-            double err_y = ch->target_y - ch->eo->abs_y;
+            double err_x = ch->target_x - cur_x;
+            double err_y = ch->target_y - cur_y;
             double err_yaw = Chassis_AngleNormalize(ch->target_yaw - ch->mn.yaw);
 
             ch->pid_x.target = err_x;

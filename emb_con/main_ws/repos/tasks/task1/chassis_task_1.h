@@ -4,6 +4,10 @@
 #include <stdint.h>
 #include "chassis.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* 任务1状态机检查点 */
 typedef enum {
     START,  // 初始状态
@@ -49,13 +53,13 @@ void Chassis_Task1_Init(Chassis_Task1 *t1, Chassis *chassis);
 void Chassis_Task1_SetMove1(Chassis_Task1 *t1, double x, double y);
 void Chassis_Task1_SetMove2(Chassis_Task1 *t1, double x, double y);
 void Chassis_Task1_SetMove3(Chassis_Task1 *t1, double x, double y);
-// void Chassis_Task1_SetTargetDistance(Chassis_Task1 *t1, double target_distance); // 精确校准，注释保留
-// void Chassis_Task1_OnLineData(Chassis_Task1 *t1, double center, double slope); // 旧巡线方案，注释保留
-// void Chassis_Task1_OnJunctionSignal(Chassis_Task1 *t1); // 旧巡线方案，注释保留
-// void Chassis_Task1_OnTowerDistance(Chassis_Task1 *t1, double distance); // 精确校准，注释保留
 void Chassis_Task1_Update(Chassis_Task1 *t1);
 Chassis_Task1_CheckPoint Chassis_Task1_GetState(const Chassis_Task1 *t1);
 Chassis_Task1_HostEvent Chassis_Task1_PopHostEvent(Chassis_Task1 *t1);
 uint8_t Chassis_Task1_IsDone(const Chassis_Task1 *t1);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

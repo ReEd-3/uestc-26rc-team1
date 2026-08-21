@@ -326,11 +326,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
-  // else if (htim->Instance == TIM1) {
-  //   if (ChassisMainTaskHandle != NULL) {
-  //     osThreadFlagsSet(ChassisMainTaskHandle, 0x01u);
-  //   }
-  // }
+  else if (htim->Instance == TIM1) {
+    if (ChassisMainTaskHandle != NULL) {
+      osThreadFlagsSet(ChassisMainTaskHandle, 0x01u);
+    }
+  }
   /* USER CODE END Callback 1 */
 }
 
