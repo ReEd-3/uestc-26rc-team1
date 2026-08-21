@@ -167,16 +167,16 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	  SimVision_GiveMove(1,  400.0f);    /* 模拟视觉：1 号电机正转 400mm */
-	  while (g_arm_busy) vTaskDelay(pdMS_TO_TICKS(10));   /* 等正转完成*/
-	  vTaskDelay(pdMS_TO_TICKS(4000)); /* 等动作完成 + 锁死停留 */
+	  SimVision_GiveMove(1,  400.0f);     //模拟视觉：1 号电机正转 400mm
+	  while (g_arm_busy) vTaskDelay(pdMS_TO_TICKS(10));    //等正转完成
+	  vTaskDelay(pdMS_TO_TICKS(4000));  //等动作完成 + 锁死停留
 
-	  SimVision_GiveMove(2, -400.0f);    /* 模拟视觉：2 号电机反转回 400mm */
-	  while (g_arm_busy) vTaskDelay(pdMS_TO_TICKS(10));   /* 等反转完成 */
+	  SimVision_GiveMove(2, -400.0f);     //模拟视觉：2 号电机反转回 400mm
+	  while (g_arm_busy) vTaskDelay(pdMS_TO_TICKS(10));    //等反转完成
 	  vTaskDelay(pdMS_TO_TICKS(4000));
 
-	  SimVision_GiveMove(1, -800.0f);    /* 模拟视觉：1 号电机反转回 800mm */
-	  while (g_arm_busy) vTaskDelay(pdMS_TO_TICKS(10));   /* 等反转完成 */
+	  SimVision_GiveMove(1, -800.0f);     //模拟视觉：1 号电机反转回 800mm
+	  while (g_arm_busy) vTaskDelay(pdMS_TO_TICKS(10));    //等反转完成
 	  vTaskDelay(pdMS_TO_TICKS(4000));
     osDelay(1);
   }
