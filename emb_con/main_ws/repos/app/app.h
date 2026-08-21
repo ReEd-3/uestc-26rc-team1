@@ -45,7 +45,7 @@ typedef struct App_Config{
     double tol_yaw;                // 到位判定：角度误差，单位 rad
 
     /* 外设 */
-    TIM_HandleTypeDef    *update1_tim;      // 任务更新定时器
+    // TIM_HandleTypeDef    *update1_tim;      // 任务更新定时器
     UART_HandleTypeDef   *interact_uart;    // 和上位机交互的串口
     FDCAN_HandleTypeDef  *chassis_m3508_hfdcan; // 控制底盘 M3508 的总线
     FDCAN_HandleTypeDef  *odo_hfdcan;       // 里程计总线

@@ -251,7 +251,8 @@ void StartMechaArm_Task(void *argument)
 void Chassis_M3508Callback(void *argument)
 {
   /* USER CODE BEGIN Chassis_M3508Callback */
-
+  // 任务定时器中置位，1kHz触发
+  osThreadFlagsSet(ChassisMainTaskHandle, 0x01u);
   /* USER CODE END Chassis_M3508Callback */
 }
 

@@ -98,7 +98,7 @@ void Global_Init(App_Context *glb_app, const App_Config *cfg)
     s_interact_uart = cfg->interact_uart;
 
     /* 启动定时器 */
-    HAL_TIM_Base_Start_IT(cfg->update1_tim);
+    // HAL_TIM_Base_Start_IT(cfg->update1_tim);
 
     /* 启动串口交互 */
     HAL_UART_Receive_IT(cfg->interact_uart, (uint8_t *)&glb_app->rx_byte, 1u);

@@ -84,7 +84,7 @@ App_Config cfg = {
   22.0, 0.07, 0.07,
   0.6,
   0.02, 0.02,
-  &htim1,
+// &htim1,
   &huart8,
   &hfdcan3, &hfdcan1,
   2.6, 0.6,
@@ -326,11 +326,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
-  else if (htim->Instance == TIM1) {
-    if (ChassisMainTaskHandle != NULL) {
-      osThreadFlagsSet(ChassisMainTaskHandle, 0x01u);
-    }
-  }
+  // else if (htim->Instance == TIM1) {
+  //   if (ChassisMainTaskHandle != NULL) {
+  //     osThreadFlagsSet(ChassisMainTaskHandle, 0x01u);
+  //   }
+  // }
   /* USER CODE END Callback 1 */
 }
 
