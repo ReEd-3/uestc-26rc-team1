@@ -181,6 +181,7 @@ void MX_FREERTOS_Init(void) {
 void StartChassisBaseTask(void *argument)
 {
   /* USER CODE BEGIN StartChassisBaseTask */
+  osTimerStart(Chassis_M3508Handle, 1);
   /* Infinite loop */
   for(;;)
   {
