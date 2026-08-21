@@ -29,18 +29,22 @@ project(${CMAKE_PROJECT_NAME})
 message("Build type: " ${CMAKE_BUILD_TYPE})
 
 # Enable CMake support for ASM and C languages
-enable_language(C ASM)
+enable_language(CXX C ASM)
 
 # Create an executable object type
 add_executable(${CMAKE_PROJECT_NAME})
 
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx)
-add_subdirectory(repos/m3508_repo ${CMAKE_BINARY_DIR}/m3508_repo)
-add_subdirectory(repos/macnum_repo ${CMAKE_BINARY_DIR}/macnum_repo)
-add_subdirectory(repos/chassis_repo ${CMAKE_BINARY_DIR}/chassis_repo)
-add_subdirectory(repos/encoder_odo ${CMAKE_BINARY_DIR}/encoder_odo)
-
+add_subdirectory(repos/basic_dependencies ${CMAKE_BINARY_DIR}/basic_dependencies)
+add_subdirectory(repos/basic_protocol ${CMAKE_BINARY_DIR}/basic_protocol)
+add_subdirectory(repos/algorithm/macnum ${CMAKE_BINARY_DIR}/macnum)
+add_subdirectory(repos/devices/m3508 ${CMAKE_BINARY_DIR}/m3508)
+add_subdirectory(repos/devices/encoder_odo ${CMAKE_BINARY_DIR}/encoder_odo)
+add_subdirectory(repos/HC_interact ${CMAKE_BINARY_DIR}/hc_interact)
+add_subdirectory(repos/tasks/task1 ${CMAKE_BINARY_DIR}/task1)
+add_subdirectory(repos/control/chassis ${CMAKE_BINARY_DIR}/chassis)
+add_subdirectory(repos/app ${CMAKE_BINARY_DIR}/app)
 # Link directories setup
 target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined library search paths
@@ -73,6 +77,9 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     macnum
     chassis
     encoder_odo
+    hc_interact
+    task1
+    app
 
     # libm 必须放在所有静态库之后，否则 chassis/macnum 里的 cos/sin 无法解析
     "-lm"

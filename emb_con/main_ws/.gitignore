@@ -8,9 +8,6 @@ Debug/
 .vscode/
 .dsh/
 
-# 临时/测试工程（保留本地，不入库）
-repos/go8010_repo/gotest/
-
 # 编译中间文件
 *.o
 *.d

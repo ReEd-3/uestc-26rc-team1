@@ -29,7 +29,14 @@
 /* USER CODE BEGIN Includes */
 
 #include "uart_interact.h"
+#include "chassis.h"
+#include "chassis_task_1.h"
+#include "m3508_driver.h"
+#include "encoder_odo.h"
+#include "iir.h"
+#include "app.h"
 #include <stdint.h>
+#include <string.h>
 
 /* USER CODE END Includes */
 
@@ -66,41 +73,52 @@ void MX_FREERTOS_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-static void uart_tx_hook(const uint8_t *data, uint16_t len) {
-  HAL_UART_Transmit(&huart8, (uint8_t *)data, len, 100u);
-}
+App_Context global_app;
 
-// 底盘和电机总线句柄
-Chassis ch;
-M3508_CAN_All m3508;
-EncoderOdo eo;
-
-// 底盘配置
-Chassis_Config cfg = {0.075, 0.305, 0.2905, M3508_GEAR_RATIO, 
+App_Config cfg = {
+  0.075, 0.305, 0.2905, (3591.0f / 187.0f), 
   0.001, 
   1.2, 1.2, 1, 
   5, 0.01, 0.2,
   5, 0.1, 0,
-  0.02, 0.02
+  22.0, 0.07, 0.07,
+  0.6,
+  0.02, 0.02,
+  &htim1,
+  &huart8,
+  &hfdcan2, &hfdcan1,
+  2.6, 0.6,
+  0.5, -0.5,
+  -3.0, 2.0,
+  200u,
 };
 
-// 底盘任务
-Chassis_Task1 t1; 
-UartInteract it;
-
-// 通信搬运字节
-volatile uint8_t rx_byte = 0;
 
 // 通信队列
 extern osMessageQueueId_t CmdQueueTask1Handle;
 extern osThreadId_t ChassisMainTaskHandle;
 
+// 定时器中断
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
   if (huart->Instance == UART8) {
-    osMessageQueuePut(CmdQueueTask1Handle, (uint8_t *)&rx_byte, 0U, 0U);  // 把收到的字节压进队尾
-    HAL_UART_Receive_IT(&huart8, (uint8_t *)&rx_byte, 1u);  // 继续接收串口字节
+    osMessageQueuePut(CmdQueueTask1Handle, (uint8_t *)&global_app.rx_byte, 0U, 0U);  // 把收到的字节压进队尾
+    HAL_UART_Receive_IT(&huart8, (uint8_t *)&global_app.rx_byte, 1u);  // 继续接收串口字节
   }
 }
+
+// FDCAN中断
+void HAL_FDCAN_RxBufferNewMessageCallback(FDCAN_HandleTypeDef *hfdcan)
+{
+    if (hfdcan->Instance == FDCAN2) {
+        /* M3508 反馈由中断读取 */
+        M3508_ReadStatus(&global_app.m3508);
+    }
+    else if (hfdcan->Instance == FDCAN1) {
+        /* 码盘数据由中断读取并更新里程计 */
+        EncoderOdo_Update(&global_app.encoder);
+    }
+}
+
 
 /* USER CODE END 0 */
 
@@ -148,55 +166,7 @@ int main(void)
   MX_UART8_Init();
   /* USER CODE BEGIN 2 */
 
-  // 启动定时器
-  HAL_TIM_Base_Start_IT(&htim1);
-
-  // 启动串口交互
-  HAL_UART_Receive_IT(&huart8, (uint8_t *)&rx_byte, 1u);
-
-  // 开启CAN
-  // if (M3508_CAN_Init(&m3508, 0b00001111, &hfdcan2) != HAL_OK) { // CAN2 暂时不启用
-  // if (M3508_CAN_Init(&m3508, 0b00001111, &hfdcan1) != HAL_OK) { // 与 CAN3 互换前
-  if (M3508_CAN_Init(&m3508, 0b00001111, &hfdcan3) != HAL_OK) {
-    Error_Handler();
-  }
-  m3508.motors[0].rotation = 1;  // 左前轮
-  m3508.motors[1].rotation = -1;  // 右前轮
-  m3508.motors[2].rotation = 1;  // 左后轮
-  m3508.motors[3].rotation = -1;  // 右后轮
-
-  HAL_FDCAN_Start(&hfdcan1);
-  // HAL_FDCAN_Start(&hfdcan2); // CAN2 暂时不启用
-  HAL_FDCAN_Start(&hfdcan3);
-
-  // 初始化码盘
-  // EncoderOdo_Init(&eo, &hfdcan3); // 与 CAN1 互换前
-  EncoderOdo_Init(&eo, &hfdcan1);
-  EncoderOdo_SetBeginCnt(&eo);
-
-  M3508_SpeedPID_Init(&m3508, 22.0, 0.07, 0.07, 0.001);
-
-  // 初始化滤波器
-  Int16_IIRFilter_Init(&m3508.motors[0].speed_pid.iir_filter, 0.6);
-  Int16_IIRFilter_Init(&m3508.motors[1].speed_pid.iir_filter, 0.6);
-  Int16_IIRFilter_Init(&m3508.motors[2].speed_pid.iir_filter, 0.6);
-  Int16_IIRFilter_Init(&m3508.motors[3].speed_pid.iir_filter, 0.6);
-
-  // 初始化底盘
-  Chassis_Init(&ch, &m3508, &eo, &cfg);
-
-  // 把电机安装方向同步给麦轮里程计，保证反装轮子的编码器方向也正确
-  ch.mn.rotation[0] = m3508.motors[0].rotation;
-  ch.mn.rotation[1] = m3508.motors[1].rotation;
-  ch.mn.rotation[2] = m3508.motors[2].rotation;
-  ch.mn.rotation[3] = m3508.motors[3].rotation;
-
-  Chassis_Task1_Init(&t1, &ch);
-  UartInteract_Init(&it, &ch, &t1, uart_tx_hook);
-
-  // 
-  it.task_paused = 0u;
-  it.last_velocity_ms = HAL_GetTick();
+  Global_Init(&global_app, &cfg);
 
   /* USER CODE END 2 */
 

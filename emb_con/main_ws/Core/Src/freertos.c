@@ -28,6 +28,10 @@
 /* USER CODE BEGIN Includes */
 
 #include "uart_interact.h"
+#include "app.h"
+#include "chassis.h"
+#include "chassis_task_1.h"
+#include "m3508_driver.h"
 
 /* USER CODE END Includes */
 
@@ -49,11 +53,11 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
 
-extern Chassis ch;
-extern M3508_CAN_All m3508;
-extern Chassis_Task1 t1;
-extern Chassis_Config cfg;
-extern UartInteract it;
+extern App_Context global_app;
+
+uint8_t App_IsPaused(void);
+void App_CheckVelocityTimeout(uint32_t now_ms);
+void App_PollEvents(void);
 
 volatile uint8_t arm_flag1 = 0;  // 暂时使用的标志位
 
@@ -161,6 +165,8 @@ void MX_FREERTOS_Init(void) {
   * @param  argument: Not used
   * @retval None
   */
+
+// 底盘任务
 /* USER CODE END Header_StartChassisBaseTask */
 void StartChassisBaseTask(void *argument)
 {
@@ -169,13 +175,12 @@ void StartChassisBaseTask(void *argument)
   for(;;)
   {
     osThreadFlagsWait(0x01u, osFlagsWaitAny, osWaitForever);
-    // if (UartInteract_IsPaused(&it)) {
-    if (it.task_paused) {
+    if (App_IsPaused()) {
       /* 手动接管：只跑底盘闭环，跳过任务1 FSM，避免自动逻辑和手控打架 */
-      UartInteract_CheckVelocityTimeout(&it, HAL_GetTick());
-      Chassis_Update(&ch);
+      App_CheckVelocityTimeout(HAL_GetTick());
+      Chassis_Update(&global_app.chassis);
     } else {
-      Chassis_Task1_Update(&t1);
+      Chassis_Task1_Update(&global_app.task1);
     }
     // osDelay(1);
   }
@@ -188,6 +193,8 @@ void StartChassisBaseTask(void *argument)
 * @param argument: Not used
 * @retval None
 */
+
+// 接收命令字节的任务
 /* USER CODE END Header_StartComms_Task */
 void StartComms_Task(void *argument)
 {
@@ -197,12 +204,12 @@ void StartComms_Task(void *argument)
   for(;;)
   {
     if (osMessageQueueGet(CmdQueueTask1Handle, &rx_byte, NULL, 10U) == osOK) {
-      UartInteract_RxByte(&it, rx_byte);
+      UartInteract_RxByte(&global_app.interact, rx_byte);
       while (osMessageQueueGet(CmdQueueTask1Handle, &rx_byte, NULL, 0U) == osOK) {
-        UartInteract_RxByte(&it, rx_byte);   // 把一帧的字节在本次循环凑齐
+        UartInteract_RxByte(&global_app.interact, rx_byte);   // 把一帧的字节在本次循环凑齐
       }
     }
-    UartInteract_Poll(&it);
+    App_PollEvents();
     // osDelay(1);
   }
   /* USER CODE END StartComms_Task */
@@ -214,6 +221,8 @@ void StartComms_Task(void *argument)
 * @param argument: Not used
 * @retval None
 */
+
+// 机械臂任务（留白）
 /* USER CODE END Header_StartMechaArm_Task */
 void StartMechaArm_Task(void *argument)
 {
