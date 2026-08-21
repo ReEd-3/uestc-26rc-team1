@@ -111,25 +111,18 @@ void Global_Init(App_Context *glb_app, const App_Config *cfg)
     glb_app->m3508.motors[1].rotation = -1; // 右前轮
     glb_app->m3508.motors[2].rotation = 1;  // 左后轮
     glb_app->m3508.motors[3].rotation = -1; // 右后轮
-
     HAL_FDCAN_Start(cfg->chassis_m3508_hfdcan);
-    HAL_FDCAN_Start(cfg->odo_hfdcan);
-
     /* 使能 FDCAN 接收中断（RxBuffer 新消息） */
     HAL_FDCAN_ActivateNotification(cfg->chassis_m3508_hfdcan,
                                    FDCAN_IT_RX_BUFFER_NEW_MESSAGE,
                                    0);
-    HAL_FDCAN_ActivateNotification(cfg->odo_hfdcan,
-                                   FDCAN_IT_RX_BUFFER_NEW_MESSAGE,
-                                   0);
-
-    HAL_NVIC_SetPriority(FDCAN2_IT0_IRQn, 5, 0);
-    HAL_NVIC_EnableIRQ(FDCAN2_IT0_IRQn);
-    HAL_NVIC_SetPriority(FDCAN1_IT0_IRQn, 5, 0);
-    HAL_NVIC_EnableIRQ(FDCAN1_IT0_IRQn);
 
     /* 初始化码盘 */
     EncoderOdo_Init(&glb_app->encoder, cfg->odo_hfdcan);
+    HAL_FDCAN_Start(cfg->odo_hfdcan);
+    HAL_FDCAN_ActivateNotification(cfg->odo_hfdcan,
+                                   FDCAN_IT_RX_BUFFER_NEW_MESSAGE,
+                                   0);
     EncoderOdo_SetBeginCnt(&glb_app->encoder);
 
     /* 电机速度环 PID */

@@ -49,6 +49,7 @@
 /* USER CODE BEGIN Variables */
 volatile float g_arm_distance_mm = 0.0f;   /* 测试：正负=方向 */
 volatile uint8_t g_arm_busy = 0u;
+volatile uint8_t g_arm_motor_id = 1;       /* 目标电机 CAN ID */
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -88,7 +89,7 @@ osSemaphoreId_t armSemHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
-static void SimVision_GiveMove(float distance_mm);
+static void SimVision_GiveMove(uint8_t can_id, float distance_mm);
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void *argument);
@@ -166,11 +167,15 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	  SimVision_GiveMove( 400.0f);    /* 模拟视觉：正转 400mm */
+	  SimVision_GiveMove(1,  400.0f);    /* 模拟视觉：1 号电机正转 400mm */
 	  while (g_arm_busy) vTaskDelay(pdMS_TO_TICKS(10));   /* 等正转完成*/
 	  vTaskDelay(pdMS_TO_TICKS(4000)); /* 等动作完成 + 锁死停留 */
 
-	  SimVision_GiveMove(-400.0f);    /* 模拟视觉：反转回 400mm */
+	  SimVision_GiveMove(2, -400.0f);    /* 模拟视觉：2 号电机反转回 400mm */
+	  while (g_arm_busy) vTaskDelay(pdMS_TO_TICKS(10));   /* 等反转完成 */
+	  vTaskDelay(pdMS_TO_TICKS(4000));
+
+	  SimVision_GiveMove(1, -800.0f);    /* 模拟视觉：1 号电机反转回 800mm */
 	  while (g_arm_busy) vTaskDelay(pdMS_TO_TICKS(10));   /* 等反转完成 */
 	  vTaskDelay(pdMS_TO_TICKS(4000));
     osDelay(1);
@@ -229,8 +234,9 @@ void StartMotorCurTask(void *argument)
 
 /* 模拟视觉模块：这就是将来 uart_interact.c 的 OnFrame case 里要调的两行。
  * 正式接视觉时，删掉本函数，让 UART 回调直接调这两行即可。 */
-static void SimVision_GiveMove(float distance_mm)
+static void SimVision_GiveMove(uint8_t can_id, float distance_mm)
 {
+    g_arm_motor_id    = can_id;           /* 目标电机 CAN ID */
     g_arm_distance_mm = distance_mm;      /* 写距离（float，32位原子写） */
     g_arm_busy = 1u;
     osSemaphoreRelease(armSemHandle);     /* 给信号量（ISR 安全） —— 外部"Release" */
@@ -251,7 +257,7 @@ void StartArmTask(void *argument)
     for (;;)
     {
         osSemaphoreAcquire(armSemHandle, osWaitForever);   /* 阻塞等信号量 */
-        Arm_MoveLock((double)g_arm_distance_mm);           /* 一次动作 */
+        Arm_MoveLock(g_arm_motor_id, (double)g_arm_distance_mm);           /* 一次动作 */
         g_arm_busy = 0u;
     }
 }

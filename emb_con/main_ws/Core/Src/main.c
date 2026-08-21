@@ -86,7 +86,7 @@ App_Config cfg = {
   0.02, 0.02,
   &htim1,
   &huart8,
-  &hfdcan2, &hfdcan1,
+  &hfdcan3, &hfdcan1,
   2.6, 0.6,
   0.5, -0.5,
   -3.0, 2.0,
@@ -109,7 +109,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 // FDCAN中断
 void HAL_FDCAN_RxBufferNewMessageCallback(FDCAN_HandleTypeDef *hfdcan)
 {
-    if (hfdcan->Instance == FDCAN2) {
+    if (hfdcan->Instance == FDCAN3) {
         /* M3508 反馈由中断读取 */
         M3508_ReadStatus(&global_app.m3508);
     }
