@@ -55,6 +55,7 @@ extern Chassis_Task1 t1;
 extern Chassis_Config cfg;
 extern UartInteract it;
 
+volatile uint8_t arm_flag1 = 0;  // 暂时使用的标志位
 
 /* USER CODE END Variables */
 /* Definitions for ChassisMainTask */
@@ -71,10 +72,22 @@ const osThreadAttr_t Comms_Task_attributes = {
   .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
+/* Definitions for MechaArm_Task */
+osThreadId_t MechaArm_TaskHandle;
+const osThreadAttr_t MechaArm_Task_attributes = {
+  .name = "MechaArm_Task",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
 /* Definitions for CmdQueueTask1 */
 osMessageQueueId_t CmdQueueTask1Handle;
 const osMessageQueueAttr_t CmdQueueTask1_attributes = {
   .name = "CmdQueueTask1"
+};
+/* Definitions for Task1_ArmGet */
+osSemaphoreId_t Task1_ArmGetHandle;
+const osSemaphoreAttr_t Task1_ArmGet_attributes = {
+  .name = "Task1_ArmGet"
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -84,6 +97,7 @@ const osMessageQueueAttr_t CmdQueueTask1_attributes = {
 
 void StartChassisBaseTask(void *argument);
 void StartComms_Task(void *argument);
+void StartMechaArm_Task(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -100,6 +114,10 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
+
+  /* Create the semaphores(s) */
+  /* creation of Task1_ArmGet */
+  Task1_ArmGetHandle = osSemaphoreNew(1, 0, &Task1_ArmGet_attributes);
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
@@ -123,6 +141,9 @@ void MX_FREERTOS_Init(void) {
 
   /* creation of Comms_Task */
   Comms_TaskHandle = osThreadNew(StartComms_Task, NULL, &Comms_Task_attributes);
+
+  /* creation of MechaArm_Task */
+  MechaArm_TaskHandle = osThreadNew(StartMechaArm_Task, NULL, &MechaArm_Task_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -185,6 +206,26 @@ void StartComms_Task(void *argument)
     // osDelay(1);
   }
   /* USER CODE END StartComms_Task */
+}
+
+/* USER CODE BEGIN Header_StartMechaArm_Task */
+/**
+* @brief Function implementing the MechaArm_Task thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartMechaArm_Task */
+void StartMechaArm_Task(void *argument)
+{
+  /* USER CODE BEGIN StartMechaArm_Task */
+  /* Infinite loop */
+  for(;;)
+  {
+    osSemaphoreAcquire(Task1_ArmGetHandle, osWaitForever);
+    osDelay(2000);
+    arm_flag1 = 1;
+  }
+  /* USER CODE END StartMechaArm_Task */
 }
 
 /* Private application code --------------------------------------------------*/

@@ -73,13 +73,14 @@ static void uart_tx_hook(const uint8_t *data, uint16_t len) {
 // 底盘和电机总线句柄
 Chassis ch;
 M3508_CAN_All m3508;
+EncoderOdo eo;
 
 // 底盘配置
 Chassis_Config cfg = {0.075, 0.305, 0.2905, M3508_GEAR_RATIO, 
   0.001, 
-  5, 5, 1, 
-  10, 0.1, 0,
-  10, 0.1, 0,
+  1.2, 1.2, 1, 
+  5, 0.01, 0.2,
+  5, 0.1, 0,
   0.02, 0.02
 };
 
@@ -154,7 +155,9 @@ int main(void)
   HAL_UART_Receive_IT(&huart8, (uint8_t *)&rx_byte, 1u);
 
   // 开启CAN
-  if (M3508_CAN_Init(&m3508, 0b00001111, &hfdcan1) != HAL_OK) {
+  // if (M3508_CAN_Init(&m3508, 0b00001111, &hfdcan2) != HAL_OK) { // CAN2 暂时不启用
+  // if (M3508_CAN_Init(&m3508, 0b00001111, &hfdcan1) != HAL_OK) { // 与 CAN3 互换前
+  if (M3508_CAN_Init(&m3508, 0b00001111, &hfdcan3) != HAL_OK) {
     Error_Handler();
   }
   m3508.motors[0].rotation = 1;  // 左前轮
@@ -162,17 +165,25 @@ int main(void)
   m3508.motors[2].rotation = 1;  // 左后轮
   m3508.motors[3].rotation = -1;  // 右后轮
 
-
   HAL_FDCAN_Start(&hfdcan1);
+  // HAL_FDCAN_Start(&hfdcan2); // CAN2 暂时不启用
+  HAL_FDCAN_Start(&hfdcan3);
+
+  // 初始化码盘
+  // EncoderOdo_Init(&eo, &hfdcan3); // 与 CAN1 互换前
+  EncoderOdo_Init(&eo, &hfdcan1);
+  EncoderOdo_SetBeginCnt(&eo);
+
   M3508_SpeedPID_Init(&m3508, 22.0, 0.07, 0.07, 0.001);
 
-  Int16_IIRFilter_Init(&m3508.motors[0].speed_pid.iir_filter, 0.9);
-  Int16_IIRFilter_Init(&m3508.motors[1].speed_pid.iir_filter, 0.9);
-  Int16_IIRFilter_Init(&m3508.motors[2].speed_pid.iir_filter, 0.9);
-  Int16_IIRFilter_Init(&m3508.motors[3].speed_pid.iir_filter, 0.9);
+  // 初始化滤波器
+  Int16_IIRFilter_Init(&m3508.motors[0].speed_pid.iir_filter, 0.6);
+  Int16_IIRFilter_Init(&m3508.motors[1].speed_pid.iir_filter, 0.6);
+  Int16_IIRFilter_Init(&m3508.motors[2].speed_pid.iir_filter, 0.6);
+  Int16_IIRFilter_Init(&m3508.motors[3].speed_pid.iir_filter, 0.6);
 
-  // 初始化
-  Chassis_Init(&ch, &m3508, &cfg);
+  // 初始化底盘
+  Chassis_Init(&ch, &m3508, &eo, &cfg);
 
   // 把电机安装方向同步给麦轮里程计，保证反装轮子的编码器方向也正确
   ch.mn.rotation[0] = m3508.motors[0].rotation;
@@ -183,8 +194,8 @@ int main(void)
   Chassis_Task1_Init(&t1, &ch);
   UartInteract_Init(&it, &ch, &t1, uart_tx_hook);
 
-  // TODO: 临时强制进入“上机手动”状态，便于调试；正式版可去掉
-  it.task_paused = 1u;
+  // 
+  it.task_paused = 0u;
   it.last_velocity_ms = HAL_GetTick();
 
   /* USER CODE END 2 */

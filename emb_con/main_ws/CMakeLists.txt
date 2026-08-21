@@ -39,6 +39,7 @@ add_subdirectory(cmake/stm32cubemx)
 add_subdirectory(repos/m3508_repo ${CMAKE_BINARY_DIR}/m3508_repo)
 add_subdirectory(repos/macnum_repo ${CMAKE_BINARY_DIR}/macnum_repo)
 add_subdirectory(repos/chassis_repo ${CMAKE_BINARY_DIR}/chassis_repo)
+add_subdirectory(repos/encoder_odo ${CMAKE_BINARY_DIR}/encoder_odo)
 
 # Link directories setup
 target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
@@ -71,6 +72,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     m3508
     macnum
     chassis
+    encoder_odo
 
     # libm 必须放在所有静态库之后，否则 chassis/macnum 里的 cos/sin 无法解析
     "-lm"

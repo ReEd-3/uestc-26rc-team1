@@ -1,3 +1,29 @@
-build
+# Build / 生成目录
+build/
+Debug/
+.cache/
+
+# IDE / 工具本地配置
+.settings/
+.vscode/
+.dsh/
+
+# 临时/测试工程（保留本地，不入库）
+repos/go8010_repo/gotest/
+
+# 编译中间文件
+*.o
+*.d
+*.elf
+*.hex
+*.bin
+*.map
+*.crf
+*.lnp
+*.axf
+*.htm
+*.dep
+*.build_log.htm
+
+# 其他
 mx.scratch
-!.settings

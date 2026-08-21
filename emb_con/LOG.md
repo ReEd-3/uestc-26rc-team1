@@ -73,3 +73,8 @@ ReEd-3
 UESTCShine
 - 编写关节的状态机
 - 将状态机迁移到freertos里面
+
+### 8.20
+UESTCShine
+- 编写任务1状态机
+- 编写任务2状态机

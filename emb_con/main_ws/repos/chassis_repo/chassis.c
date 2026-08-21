@@ -30,7 +30,7 @@ static void Chassis_ResetPid(Chassis *ch)
 }
 
 /* 初始化底盘句柄并保存电机、麦轮和 PID 参数 */
-void Chassis_Init(Chassis *ch, M3508_CAN_All *m3508, const Chassis_Config *cfg)
+void Chassis_Init(Chassis *ch, M3508_CAN_All *m3508, EncoderOdo *eo, const Chassis_Config *cfg)
 {
     if (ch == NULL || m3508 == NULL || cfg == NULL) {
         return;
@@ -38,6 +38,7 @@ void Chassis_Init(Chassis *ch, M3508_CAN_All *m3508, const Chassis_Config *cfg)
 
     // 电机总线
     ch->m3508 = m3508;
+    ch->eo = eo;
 
     // 麦轮初始化
     Macnum_Init(&ch->mn,
@@ -45,7 +46,7 @@ void Chassis_Init(Chassis *ch, M3508_CAN_All *m3508, const Chassis_Config *cfg)
                 cfg->half_wheelbase,
                 cfg->half_track,
                 cfg->gear_ratio);
-
+    
     // 初始底盘停止
     ch->mode = CHASSIS_MODE_STOP;
 
@@ -72,6 +73,10 @@ void Chassis_SetPose(Chassis *ch, double x, double y, double yaw)
     ch->mn.rea_x = x;
     ch->mn.rea_y = y;
     ch->mn.yaw = yaw;
+    if (ch->eo != NULL) {
+        ch->eo->abs_x = x;
+        ch->eo->abs_y = y;
+    }
     Chassis_ResetPid(ch);
 }
 
@@ -83,6 +88,20 @@ void Chassis_ResetPose(Chassis *ch, const uint16_t encoder_now[4])
     }
 
     Macnum_PositionReset(&ch->mn, (uint16_t *)encoder_now);
+    if (ch->eo != NULL) {
+        EncoderOdo_SetBeginCnt(ch->eo);
+    }
+    Chassis_ResetPid(ch);
+}
+
+/* 任务每个环节开始时重置码盘坐标系：下一次收到的码盘值作为零点 */
+void Chassis_ResetEncoderPose(Chassis *ch)
+{
+    if (ch == NULL || ch->eo == NULL) {
+        return;
+    }
+
+    EncoderOdo_SetBeginCnt(ch->eo);
     Chassis_ResetPid(ch);
 }
 
@@ -114,8 +133,8 @@ void Chassis_MoveRelative(Chassis *ch, double dx, double dy, double dyaw)
     double cos_yaw = cos(ch->mn.yaw);
     double sin_yaw = sin(ch->mn.yaw);
 
-    ch->target_x = ch->mn.rea_x + dx * cos_yaw - dy * sin_yaw;
-    ch->target_y = ch->mn.rea_y + dx * sin_yaw + dy * cos_yaw;
+    ch->target_x = ch->eo->abs_x + dx * cos_yaw - dy * sin_yaw;
+    ch->target_y = ch->eo->abs_y + dx * sin_yaw + dy * cos_yaw;
     ch->target_yaw = Chassis_AngleNormalize(ch->mn.yaw + dyaw);
 
     ch->mode = CHASSIS_MODE_RELATIVE_MOVE;
@@ -169,6 +188,7 @@ void Chassis_Update(Chassis *ch)
 
     /* 更新里程计，rea_x/rea_y/yaw 会更新 */
     Macnum_PositionStateUpdate(&ch->mn, encoder_raw);
+    EncoderOdo_Update(ch->eo);
 
     double vx_cmd = 0.0;
     double vy_cmd = 0.0;
@@ -189,8 +209,8 @@ void Chassis_Update(Chassis *ch)
             ch->pid_y.dt = ch->dt;
             ch->pid_yaw.dt = ch->dt;
 
-            double err_x = ch->target_x - ch->mn.rea_x;
-            double err_y = ch->target_y - ch->mn.rea_y;
+            double err_x = ch->target_x - ch->eo->abs_x;
+            double err_y = ch->target_y - ch->eo->abs_y;
             double err_yaw = Chassis_AngleNormalize(ch->target_yaw - ch->mn.yaw);
 
             ch->pid_x.target = err_x;
@@ -251,8 +271,8 @@ uint8_t Chassis_Arrived(Chassis *ch)
         return 0;
     }
 
-    double err_x = ch->target_x - ch->mn.rea_x;
-    double err_y = ch->target_y - ch->mn.rea_y;
+    double err_x = ch->target_x - ch->eo->abs_x;
+    double err_y = ch->target_y - ch->eo->abs_y;
     double err_yaw = Chassis_AngleNormalize(ch->target_yaw - ch->mn.yaw);
 
     return (fabs(err_x) <= ch->tol_xy &&
