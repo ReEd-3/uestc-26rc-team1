@@ -88,6 +88,11 @@ osMessageQueueId_t CmdQueueTask1Handle;
 const osMessageQueueAttr_t CmdQueueTask1_attributes = {
   .name = "CmdQueueTask1"
 };
+/* Definitions for Chassis_M3508 */
+osTimerId_t Chassis_M3508Handle;
+const osTimerAttr_t Chassis_M3508_attributes = {
+  .name = "Chassis_M3508"
+};
 /* Definitions for Task1_ArmGet */
 osSemaphoreId_t Task1_ArmGetHandle;
 const osSemaphoreAttr_t Task1_ArmGet_attributes = {
@@ -102,6 +107,7 @@ const osSemaphoreAttr_t Task1_ArmGet_attributes = {
 void StartChassisBaseTask(void *argument);
 void StartComms_Task(void *argument);
 void StartMechaArm_Task(void *argument);
+void Chassis_M3508Callback(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -126,6 +132,10 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
   /* USER CODE END RTOS_SEMAPHORES */
+
+  /* Create the timer(s) */
+  /* creation of Chassis_M3508 */
+  Chassis_M3508Handle = osTimerNew(Chassis_M3508Callback, osTimerPeriodic, NULL, &Chassis_M3508_attributes);
 
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
@@ -235,6 +245,14 @@ void StartMechaArm_Task(void *argument)
     arm_flag1 = 1;
   }
   /* USER CODE END StartMechaArm_Task */
+}
+
+/* Chassis_M3508Callback function */
+void Chassis_M3508Callback(void *argument)
+{
+  /* USER CODE BEGIN Chassis_M3508Callback */
+
+  /* USER CODE END Chassis_M3508Callback */
 }
 
 /* Private application code --------------------------------------------------*/
