@@ -53,6 +53,18 @@ public:
         total_arc_ = Gauss_Segment_arc_Square(&sb_, 0.0, 1.0);
 
         // 3. 三次多项式规划：弧长 0 -> total_arc，初末速度 v0/vf
+        // v0 使用当前底盘速度在路径起始切线上的投影
+        double tx = 2.0 * (sb_.p1.x - sb_.p0.x);
+        double ty = 2.0 * (sb_.p1.y - sb_.p0.y);
+        double len = hypot(tx, ty);
+
+        double v0_auto = 0.0;
+        if (len > 1e-6) {
+            v0_auto = (chassis_->eo->abs_vx * tx + chassis_->eo->abs_vy * ty) / len;
+            if (v0_auto < 0.0) v0_auto = 0.0;
+        }
+        v0_ = v0_auto;
+
         Cubic1D_Plan(&speed_,
                      0.0, total_arc_,
                      v0_, vf_,
@@ -159,7 +171,18 @@ public:
         total_arc_ = Gauss_Segment_arc_Cube(&cb_, 0.0, 1.0);
 
         // 3. 三次多项式规划：弧长 0 -> total_arc，初末速度 v0/vf
-        v0_ = sqrt(pow(chassis_->eo->abs_vx, 2) + pow(chassis_->eo->abs_vy, 2));
+        // v0 使用当前底盘速度在路径起始切线上的投影
+        double tx = 3.0 * (cb_.p1.x - cb_.p0.x);
+        double ty = 3.0 * (cb_.p1.y - cb_.p0.y);
+        double len = hypot(tx, ty);
+
+        double v0_auto = 0.0;
+        if (len > 1e-6) {
+            v0_auto = (chassis_->eo->abs_vx * tx + chassis_->eo->abs_vy * ty) / len;
+            if (v0_auto < 0.0) v0_auto = 0.0;
+        }
+        v0_ = v0_auto;
+
         Cubic1D_Plan(&speed_,
                      0.0, total_arc_,
                      v0_, vf_,
@@ -182,7 +205,7 @@ public:
 
         if (s_target >= total_arc_) {
             // 位置PID：停到终点
-            Chassis_FollowTarget(chassis_, cb_.p2.x, cb_.p2.y, chassis_->yis->yaw);
+            Chassis_FollowTarget(chassis_, cb_.p3.x, cb_.p3.y, chassis_->yis->yaw);
             Set_Status(TaskExeStatus::FINISHED);
             return;
         }
