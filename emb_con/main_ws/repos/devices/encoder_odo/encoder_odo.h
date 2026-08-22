@@ -3,7 +3,7 @@
 
 #include "fdcan_std.h"
 #include "stm32h7xx_hal.h"
-
+#include "iir.h"
 
 // 码盘结构体
 typedef struct {
@@ -33,9 +33,30 @@ typedef struct {
 
     double abs_x;  // 码盘绝对位移
     double abs_y;  // 
+
+    double abs_vx;  // 世界系绝对速度
+    double abs_vy;
+
+    double rel_vx;  // 自身坐标系速度
+    double rel_vy;
+
+    double iir_alpha;
+
+    // 左前码盘
+    double FL_pos_x, FL_pos_y;
+    double FL_dir_x, FL_dir_y;
+
+    // 右前码盘
+    double FR_pos_x, FR_pos_y;
+    double FR_dir_x, FR_dir_y;
+
+    // 上一周期位置，用于差分/滤波
+    double last_abs_x, last_abs_y;
+    double last_yaw;
+    uint8_t yaw_initialized;
 } EncoderOdo;
 
-void EncoderOdo_Init(EncoderOdo *eo, FDCAN_HandleTypeDef *hfdcan);
+void EncoderOdo_Init(EncoderOdo *eo, FDCAN_HandleTypeDef *hfdcan, double iir_alpha);
 
 // 计算初始位置编码器值 
 void EncoderOdo_SetBeginCnt(EncoderOdo *eo);
@@ -44,6 +65,6 @@ void EncoderOdo_SetBeginCnt(EncoderOdo *eo);
 int16_t EncoderOdo_Cnt_Solver(uint16_t cur_cnt, uint16_t lst_cnt);
 
 // 读取码盘计数并且解算出xy的位移
-void EncoderOdo_Update(EncoderOdo *eo);
+void EncoderOdo_Update(EncoderOdo *eo, double yaw, double dt);
 
 #endif

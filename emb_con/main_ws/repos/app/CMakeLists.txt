@@ -12,6 +12,7 @@ target_link_libraries(app PUBLIC
     task1
     hc_interact
     m3508
+    yis506
     encoder_odo
     basic_dependencies
     basic_protocol

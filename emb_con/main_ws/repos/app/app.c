@@ -1,4 +1,5 @@
 #include "app.h"
+#include "yis506.h"
 #include <string.h>
 
 void Error_Handler(void);
@@ -117,8 +118,9 @@ void Global_Init(App_Context *glb_app, const App_Config *cfg)
                                    FDCAN_IT_RX_BUFFER_NEW_MESSAGE,
                                    0);
 
-    /* 初始化码盘 */
-    EncoderOdo_Init(&glb_app->encoder, cfg->odo_hfdcan);
+    /* 初始化码盘和YIS506 */
+    Yis506_Init(&glb_app->yis506, cfg->odo_hfdcan);
+    EncoderOdo_Init(&glb_app->encoder, cfg->odo_hfdcan, cfg->encoder_vel_iir_alpha);
     HAL_FDCAN_Start(cfg->odo_hfdcan);
     HAL_FDCAN_ActivateNotification(cfg->odo_hfdcan,
                                    FDCAN_IT_RX_BUFFER_NEW_MESSAGE,
@@ -139,13 +141,13 @@ void Global_Init(App_Context *glb_app, const App_Config *cfg)
     Int16_IIRFilter_Init(&glb_app->m3508.motors[3].speed_pid.iir_filter, cfg->m3508_iir_alpha);
 
     /* 初始化底盘 */
-    Chassis_Init(&glb_app->chassis, &glb_app->m3508, &glb_app->encoder, cfg);
+    Chassis_Init(&glb_app->chassis, &glb_app->m3508, &glb_app->encoder, &global_app.macnum, &global_app.yis506, cfg);
 
     /* 把电机安装方向同步给麦轮里程计 */
-    glb_app->chassis.mn.rotation[0] = glb_app->m3508.motors[0].rotation;
-    glb_app->chassis.mn.rotation[1] = glb_app->m3508.motors[1].rotation;
-    glb_app->chassis.mn.rotation[2] = glb_app->m3508.motors[2].rotation;
-    glb_app->chassis.mn.rotation[3] = glb_app->m3508.motors[3].rotation;
+    glb_app->chassis.mn->rotation[0] = glb_app->m3508.motors[0].rotation;
+    glb_app->chassis.mn->rotation[1] = glb_app->m3508.motors[1].rotation;
+    glb_app->chassis.mn->rotation[2] = glb_app->m3508.motors[2].rotation;
+    glb_app->chassis.mn->rotation[3] = glb_app->m3508.motors[3].rotation;
 
     /* 初始化任务1 */
     Chassis_Task1_Init(&glb_app->task1, &glb_app->chassis);

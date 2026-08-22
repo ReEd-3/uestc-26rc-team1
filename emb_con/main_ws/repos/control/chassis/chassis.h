@@ -6,6 +6,7 @@
 #include "m3508_driver.h"
 #include "pid.h"
 #include "encoder_odo.h"
+#include "yis506.h"
 
 typedef struct App_Config App_Config;
 
@@ -18,8 +19,9 @@ typedef enum {
 
 typedef struct {
     M3508_CAN_All *m3508;    // 电机/CAN 句柄
-    Macnum mn;               // 麦轮解算
+    Macnum *mn;               // 麦轮解算
     EncoderOdo *eo;           // 码盘
+    Yis506 *yis;              // IMU  
 
     Chassis_Mode mode;
 
@@ -36,7 +38,7 @@ typedef struct {
     PID_t pid_x, pid_y, pid_yaw;
 } Chassis;
 
-void Chassis_Init(Chassis *ch, M3508_CAN_All *m3508, EncoderOdo *eo, const App_Config *cfg);
+void Chassis_Init(Chassis *ch, M3508_CAN_All *m3508, EncoderOdo *eo, Macnum *mn, Yis506 *yis, const App_Config *cfg);
 void Chassis_ResetEncoderPose(Chassis *ch);
 void Chassis_SetPose(Chassis *ch, double x, double y, double yaw);
 void Chassis_ResetPose(Chassis *ch, const uint16_t encoder_now[4]);

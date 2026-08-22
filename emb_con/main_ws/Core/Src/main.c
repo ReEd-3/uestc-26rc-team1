@@ -33,6 +33,7 @@
 #include "chassis_task_1.h"
 #include "m3508_driver.h"
 #include "encoder_odo.h"
+#include "yis506.h"
 #include "iir.h"
 #include "app.h"
 #include <stdint.h>
@@ -82,11 +83,12 @@ App_Config cfg = {
   5, 0.01, 0.2,
   5, 0.1, 0,
   22.0, 0.07, 0.07,
-  0.6,
+  0.6, 0.2,
   0.02, 0.02,
 // &htim1,
   &huart8,
   &hfdcan3, &hfdcan1,
+// 3, 4, 5,
   2.6, 0.6,
   0.5, -0.5,
   -3.0, 2.0,
@@ -109,14 +111,20 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 // FDCAN中断
 void HAL_FDCAN_RxBufferNewMessageCallback(FDCAN_HandleTypeDef *hfdcan)
 {
-    if (hfdcan->Instance == FDCAN3) {
-        /* M3508 反馈由中断读取 */
-        M3508_ReadStatus(&global_app.m3508);
+  if (hfdcan->Instance == FDCAN3) {
+      /* M3508 反馈由中断读取 */
+      M3508_ReadStatus(&global_app.m3508);
+  }
+  else if (hfdcan->Instance == FDCAN1) {
+    /* 码盘数据由中断读取并更新里程计 */
+    
+    if (HAL_FDCAN_IsRxBufferMessageAvailable(global_app.encoder.hfdcan, 0) && HAL_FDCAN_IsRxBufferMessageAvailable(global_app.encoder.hfdcan, 1)) {
+      EncoderOdo_Update(&global_app.encoder, Yis506_GetYawRad(&global_app.yis506), 0.001);
     }
-    else if (hfdcan->Instance == FDCAN1) {
-        /* 码盘数据由中断读取并更新里程计 */
-        EncoderOdo_Update(&global_app.encoder);
+    if (HAL_FDCAN_IsRxBufferMessageAvailable(global_app.chassis.yis->hfdcan, YIS506_EULER_BUF)) {
+      Yis506_Update(&global_app.yis506);
     }
+  }
 }
 
 

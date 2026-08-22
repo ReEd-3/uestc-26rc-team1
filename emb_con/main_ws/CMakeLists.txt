@@ -42,6 +42,7 @@ add_subdirectory(repos/algorithm/macnum ${CMAKE_BINARY_DIR}/macnum)
 add_subdirectory(repos/algorithm/trajectory ${CMAKE_BINARY_DIR}/trajectory)
 add_subdirectory(repos/devices/m3508 ${CMAKE_BINARY_DIR}/m3508)
 add_subdirectory(repos/devices/encoder_odo ${CMAKE_BINARY_DIR}/encoder_odo)
+add_subdirectory(repos/devices/yis506 ${CMAKE_BINARY_DIR}/yis506)
 add_subdirectory(repos/HC_interact ${CMAKE_BINARY_DIR}/hc_interact)
 add_subdirectory(repos/tasks/common_tasks ${CMAKE_BINARY_DIR}/common_tasks)
 add_subdirectory(repos/tasks/task1 ${CMAKE_BINARY_DIR}/task1)
@@ -76,6 +77,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
 
     # Add user defined libraries
     m3508
+    yis506
     macnum
     trajectory
     chassis

@@ -5,15 +5,19 @@
 #include "m3508_driver.h"
 #include "encoder_odo.h"
 #include "chassis_task_1.h"
+#include "stm32h7xx_hal_fdcan.h"
 #include "uart_interact.h"
+#include "yis506.h"
 #include "stm32h7xx_hal.h"
 
 typedef struct {
     Chassis        chassis;
     M3508_CAN_All  m3508;
     EncoderOdo     encoder;
+    Macnum         macnum;
     Chassis_Task1  task1;
     UartInteract   interact;
+    Yis506         yis506;
 
     /* 应用层状态 */
     volatile uint8_t task_paused;
@@ -40,6 +44,7 @@ typedef struct App_Config{
     double yaw_kp, yaw_ki, yaw_kd; // yaw 角度环 PID
     double m3508_kp, m3508_ki, m3508_kd; // 电机 PID
     double m3508_iir_alpha;        // 电机低通滤波系数
+    double encoder_vel_iir_alpha;   // 码盘低通滤波系数
 
     double tol_xy;                 // 到位判定：位置误差，单位 m
     double tol_yaw;                // 到位判定：角度误差，单位 rad
@@ -48,7 +53,7 @@ typedef struct App_Config{
     // TIM_HandleTypeDef    *update1_tim;      // 任务更新定时器
     UART_HandleTypeDef   *interact_uart;    // 和上位机交互的串口
     FDCAN_HandleTypeDef  *chassis_m3508_hfdcan; // 控制底盘 M3508 的总线
-    FDCAN_HandleTypeDef  *odo_hfdcan;       // 里程计总线
+    FDCAN_HandleTypeDef  *odo_hfdcan;       // 里程计总线和的YIS506总线
 
     /* 任务1参数 */
     double task1_move1_x;

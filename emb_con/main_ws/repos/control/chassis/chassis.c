@@ -35,7 +35,7 @@ static void Chassis_ResetPid(Chassis *ch)
 }
 
 /* 初始化底盘句柄并保存电机、麦轮和 PID 参数 */
-void Chassis_Init(Chassis *ch, M3508_CAN_All *m3508, EncoderOdo *eo, const App_Config *cfg)
+void Chassis_Init(Chassis *ch, M3508_CAN_All *m3508, EncoderOdo *eo, Macnum *mn, Yis506 *yis, const App_Config *cfg)
 {
     if (ch == NULL || m3508 == NULL || cfg == NULL) {
         return;
@@ -44,9 +44,11 @@ void Chassis_Init(Chassis *ch, M3508_CAN_All *m3508, EncoderOdo *eo, const App_C
     // 电机总线
     ch->m3508 = m3508;
     ch->eo = eo;
+    ch->mn = mn;
+    ch->yis = yis;
 
     // 麦轮初始化
-    Macnum_Init(&ch->mn,
+    Macnum_Init(ch->mn,
                 cfg->chassis_wheel_radius,
                 cfg->half_wheelbase,
                 cfg->half_track,
@@ -75,9 +77,6 @@ void Chassis_SetPose(Chassis *ch, double x, double y, double yaw)
         return;
     }
 
-    ch->mn.rea_x = x;
-    ch->mn.rea_y = y;
-    ch->mn.yaw = yaw;
     if (ch->eo != NULL) {
         ch->eo->abs_x = x;
         ch->eo->abs_y = y;
@@ -92,7 +91,6 @@ void Chassis_ResetPose(Chassis *ch, const uint16_t encoder_now[4])
         return;
     }
 
-    Macnum_PositionReset(&ch->mn, (uint16_t *)encoder_now);
     if (ch->eo != NULL) {
         EncoderOdo_SetBeginCnt(ch->eo);
     }
@@ -135,12 +133,15 @@ void Chassis_MoveRelative(Chassis *ch, double dx, double dy, double dyaw)
      * dx 表示车体前进方向，dy 表示车体横移方向。
      * 先转换到世界坐标，再作为绝对目标控制。
      */
-    double cos_yaw = cos(ch->mn.yaw);
-    double sin_yaw = sin(ch->mn.yaw);
+    double cos_yaw = cos(ch->yis->yaw);
+    double sin_yaw = sin(ch->yis->yaw);
 
     ch->target_x = ch->eo->abs_x + dx * cos_yaw - dy * sin_yaw;
     ch->target_y = ch->eo->abs_y + dx * sin_yaw + dy * cos_yaw;
-    ch->target_yaw = Chassis_AngleNormalize(ch->mn.yaw + dyaw);
+    ch->target_yaw = Chassis_AngleNormalize(ch->yis->yaw + dyaw);
+
+    // ch->target_x = ch->eo->abs_x + dx - dy;
+    // ch->target_y = ch->eo->abs_y + dx + dy;
 
     ch->mode = CHASSIS_MODE_RELATIVE_MOVE;
     Chassis_ResetPid(ch);
@@ -186,7 +187,7 @@ void Chassis_Stop(Chassis *ch)
     ch->mode = CHASSIS_MODE_STOP;
     ch->tar_vx = 0.0;
     ch->tar_vy = 0.0;
-    ch->tar_omega = 0.0;
+    // ch->tar_omega = 0.0;
     Chassis_ResetPid(ch);
 }
 
@@ -196,19 +197,6 @@ void Chassis_Update(Chassis *ch)
     if (ch == NULL || ch->m3508 == NULL) {
         return;
     }
-
-    // 先读取当前电机反馈，用于里程计
-    // M3508_ReadStatus(ch->m3508);
-    uint16_t encoder_raw[4] = {
-        ch->m3508->motors[0].position,
-        ch->m3508->motors[1].position,
-        ch->m3508->motors[2].position,
-        ch->m3508->motors[3].position
-    };
-
-    /* 更新里程计，rea_x/rea_y/yaw 会更新 */
-    Macnum_PositionStateUpdate(&ch->mn, encoder_raw);
-    // EncoderOdo_Update(ch->eo);
 
     double cur_x, cur_y;
 
@@ -239,7 +227,7 @@ void Chassis_Update(Chassis *ch)
 
             double err_x = ch->target_x - cur_x;
             double err_y = ch->target_y - cur_y;
-            double err_yaw = Chassis_AngleNormalize(ch->target_yaw - ch->mn.yaw);
+            double err_yaw = Chassis_AngleNormalize(ch->target_yaw - ch->yis->yaw);
 
             ch->pid_x.target = err_x;
             ch->pid_x.current = 0.0;
@@ -253,10 +241,12 @@ void Chassis_Update(Chassis *ch)
             double omega = PID_Compute(&ch->pid_yaw);
 
             /* 世界系速度命令旋转到车体系 */
-            double cos_yaw = cos(ch->mn.yaw);
-            double sin_yaw = sin(ch->mn.yaw);
+            double cos_yaw = cos(ch->yis->yaw);
+            double sin_yaw = sin(ch->yis->yaw);
             vx_cmd = vx_world * cos_yaw + vy_world * sin_yaw;
             vy_cmd = -vx_world * sin_yaw + vy_world * cos_yaw;
+            // vx_cmd = vx_world + vy_world;
+            // vy_cmd = -vx_world + vy_world;
             omega_cmd = omega;
             break;
         }
@@ -278,8 +268,8 @@ void Chassis_Update(Chassis *ch)
     else if (omega_cmd < -ch->max_omega) omega_cmd = -ch->max_omega;
 
     /* 目标速度 -> 四个轮子 rpm -> 电机速度环 */
-    Macnum_SetTarget(&ch->mn, vx_cmd, vy_cmd, omega_cmd);
-    M3508_SetSpeedTarget(ch->m3508, ch->mn.tar_rpm);
+    Macnum_SetTarget(ch->mn, vx_cmd, vy_cmd, omega_cmd);
+    M3508_SetSpeedTarget(ch->m3508, ch->mn->tar_rpm);
 
     // 设置目标后再更新 PID，避免当前拍仍使用上一拍目标导致输出 0
     M3508_PID_Update(ch->m3508);
@@ -301,9 +291,10 @@ uint8_t Chassis_Arrived(Chassis *ch)
 
     double err_x = ch->target_x - ch->eo->abs_x;
     double err_y = ch->target_y - ch->eo->abs_y;
-    double err_yaw = Chassis_AngleNormalize(ch->target_yaw - ch->mn.yaw);
+    double err_yaw = Chassis_AngleNormalize(ch->target_yaw - ch->yis->yaw);
 
     return (fabs(err_x) <= ch->tol_xy &&
-            fabs(err_y) <= ch->tol_xy &&
-            fabs(err_yaw) <= ch->tol_yaw) ? 1 : 0;
+            fabs(err_y) <= ch->tol_xy && 
+            fabs(err_yaw) <= ch->tol_yaw
+            ) ? 1 : 0;
 }
