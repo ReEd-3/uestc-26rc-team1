@@ -50,6 +50,10 @@
 volatile float g_arm_distance_mm = 0.0f;   /* 测试：正负=方向 */
 volatile uint8_t g_arm_busy = 0u;
 volatile uint8_t g_arm_motor_id = 1;       /* 目标电机 CAN ID */
+osSemaphoreId_t armSemHandle;
+
+
+
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -72,20 +76,18 @@ const osThreadAttr_t motorCurTask_attributes = {
   .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
-/* Definitions for motorDataMutex */
-osMutexId_t motorDataMutexHandle;
-const osMutexAttr_t motorDataMutex_attributes = {
-  .name = "motorDataMutex"
-};
 /* Definitions for armTask */
 osThreadId_t armTaskHandle;
 const osThreadAttr_t armTask_attributes = {
   .name = "armTask",
   .stack_size = 512 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
+  .priority = (osPriority_t) osPriorityBelowNormal,
 };
-
-osSemaphoreId_t armSemHandle;
+/* Definitions for motorDataMutex */
+osMutexId_t motorDataMutexHandle;
+const osMutexAttr_t motorDataMutex_attributes = {
+  .name = "motorDataMutex"
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -141,6 +143,9 @@ void MX_FREERTOS_Init(void) {
   /* creation of motorCurTask */
   motorCurTaskHandle = osThreadNew(StartMotorCurTask, NULL, &motorCurTask_attributes);
 
+  /* creation of armTask */
+  armTaskHandle = osThreadNew(StartArmTask, NULL, &armTask_attributes);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* 机械臂任务：上电演示一轮“正转→锁定→回位→锁死”，之后保持锁定 */
   armTaskHandle = osThreadNew(StartArmTask, NULL, &armTask_attributes);
@@ -159,8 +164,6 @@ void MX_FREERTOS_Init(void) {
   * @retval None
   */
 /* USER CODE END Header_StartDefaultTask */
-
-
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
@@ -182,7 +185,6 @@ void StartDefaultTask(void *argument)
   }
   /* USER CODE END StartDefaultTask */
 }
-
 
 /* USER CODE BEGIN Header_StartMotorPIDTask */
 /**
@@ -229,6 +231,33 @@ void StartMotorCurTask(void *argument)
   /* USER CODE END StartMotorCurTask */
 }
 
+/* USER CODE BEGIN Header_StartArmTask */
+/**
+* @brief Function implementing the armTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartArmTask */
+void StartArmTask(void *argument)
+{
+  /* USER CODE BEGIN StartArmTask */
+  /* Infinite loop */
+	/* 等系统稳定、等 C620 完成上电自检 */
+	    while (!M3508_IsFeedbackReady()) {
+	        vTaskDelay(pdMS_TO_TICKS(50));
+	    }
+	    vTaskDelay(pdMS_TO_TICKS(100));
+
+	    /* 无信号量 → 永久挂起；每次收到 Give → 执行一次移动（锁死保持到下次） */
+	    for (;;)
+	    {
+	        osSemaphoreAcquire(armSemHandle, osWaitForever);   /* 阻塞等信号量 */
+	        Arm_MoveLock(g_arm_motor_id, (double)g_arm_distance_mm);           /* 一次动作 */
+	        g_arm_busy = 0u;
+	    }
+  /* USER CODE END StartArmTask */
+}
+
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
 
@@ -243,25 +272,6 @@ static void SimVision_GiveMove(uint8_t can_id, float distance_mm)
 }
 
 
-
-/* 机械臂任务：调用 Arm_MoveLock（distance_mm 正负=正转/反转；移动 |mm| 后锁死） */
-void StartArmTask(void *argument)
-{
-    /* 等系统稳定、等 C620 完成上电自检 */
-    while (!M3508_IsFeedbackReady()) {
-        vTaskDelay(pdMS_TO_TICKS(50));
-    }
-    vTaskDelay(pdMS_TO_TICKS(100));
-
-    /* 无信号量 → 永久挂起；每次收到 Give → 执行一次移动（锁死保持到下次） */
-    for (;;)
-    {
-        osSemaphoreAcquire(armSemHandle, osWaitForever);   /* 阻塞等信号量 */
-        Arm_MoveLock(g_arm_motor_id, (double)g_arm_distance_mm);           /* 一次动作 */
-        g_arm_busy = 0u;
-    }
-}
-
 // TIM1/TIM2 中断
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if (htim->Instance == TIM1) {        // TIM1 1kHz -> 发电流任务
@@ -274,5 +284,5 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
         }
     }
 }
-
+/* USER CODE END Application */
 
