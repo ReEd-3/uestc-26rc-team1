@@ -103,49 +103,73 @@ double Gauss_Segment_arc_Cube(CubeBezier *bz, double a, double b) {
     return ans * half;
 }
 
-// 递归二分搜索 + 线性插值：二次贝塞尔由弧长反求参数 t
-double SquareBezier_ArcToParam(SquareBezier *sb, double target_arc, double a, double b) {
-    double int_a = Gauss_Segment_arc_Square(sb, 0.0, a);
-    double int_b = Gauss_Segment_arc_Square(sb, 0.0, b);
+// 迭代二分搜索 + 线性插值：二次贝塞尔由弧长反求参数 t
+double SquareBezier_ArcToParam(SquareBezier *sb, double target_arc, double a, double b)
+{
+    double cur_a = a;
+    double cur_b = b;
 
-    // 区间已经足够接近：线性插值
-    if (target_arc - int_a < sb->max_err && int_b - target_arc < sb->max_err) {
-        if (int_b <= int_a) {
-            return a;
+    double int_a = Gauss_Segment_arc_Square(sb, 0.0, cur_a);
+    double int_b = Gauss_Segment_arc_Square(sb, 0.0, cur_b);
+
+    for (int i = 0; i < 50; i++) {
+        if (target_arc - int_a <= sb->max_err &&
+            int_b - target_arc <= sb->max_err) {
+            break;
         }
-        return a + (b - a) * (target_arc - int_a) / (int_b - int_a);
+
+        double mid = (cur_a + cur_b) * 0.5;
+        double int_mid = Gauss_Segment_arc_Square(sb, 0.0, mid);
+
+        if (target_arc < int_mid) {
+            cur_b = mid;
+        } else {
+            cur_a = mid;
+        }
+
+        int_a = Gauss_Segment_arc_Square(sb, 0.0, cur_a);
+        int_b = Gauss_Segment_arc_Square(sb, 0.0, cur_b);
     }
 
-    double mid = (a + b) * 0.5;
-    double int_mid = Gauss_Segment_arc_Square(sb, 0.0, mid);
-
-    if (target_arc < int_mid) {
-        return SquareBezier_ArcToParam(sb, target_arc, a, mid);
-    } else {
-        return SquareBezier_ArcToParam(sb, target_arc, mid, b);
+    if (int_b <= int_a) {
+        return cur_a;
     }
+
+    return cur_a + (cur_b - cur_a) * (target_arc - int_a) / (int_b - int_a);
 }
 
 
-// 递归二分搜索 + 线性插值：三次贝塞尔由弧长反求参数 t
-double CubeBezier_ArcToParam(CubeBezier *bz, double target_arc, double a, double b) {
-    double int_a = Gauss_Segment_arc_Cube(bz, 0.0, a);
-    double int_b = Gauss_Segment_arc_Cube(bz, 0.0, b);
+// 迭代二分搜索 + 线性插值：三次贝塞尔由弧长反求参数 t
+double CubeBezier_ArcToParam(CubeBezier *bz, double target_arc, double a, double b)
+{
+    double cur_a = a;
+    double cur_b = b;
 
-    // 区间已经足够接近：线性插值
-    if (target_arc - int_a < bz->max_err && int_b - target_arc < bz->max_err) {
-        if (int_b <= int_a) {
-            return a;
+    double int_a = Gauss_Segment_arc_Cube(bz, 0.0, cur_a);
+    double int_b = Gauss_Segment_arc_Cube(bz, 0.0, cur_b);
+
+    for (int i = 0; i < 50; i++) {
+        if (target_arc - int_a <= bz->max_err &&
+            int_b - target_arc <= bz->max_err) {
+            break;
         }
-        return a + (b - a) * (target_arc - int_a) / (int_b - int_a);
+
+        double mid = (cur_a + cur_b) * 0.5;
+        double int_mid = Gauss_Segment_arc_Cube(bz, 0.0, mid);
+
+        if (target_arc < int_mid) {
+            cur_b = mid;
+        } else {
+            cur_a = mid;
+        }
+
+        int_a = Gauss_Segment_arc_Cube(bz, 0.0, cur_a);
+        int_b = Gauss_Segment_arc_Cube(bz, 0.0, cur_b);
     }
 
-    double mid = (a + b) * 0.5;
-    double int_mid = Gauss_Segment_arc_Cube(bz, 0.0, mid);
-
-    if (target_arc < int_mid) {
-        return CubeBezier_ArcToParam(bz, target_arc, a, mid);
-    } else {
-        return CubeBezier_ArcToParam(bz, target_arc, mid, b);
+    if (int_b <= int_a) {
+        return cur_a;
     }
+
+    return cur_a + (cur_b - cur_a) * (target_arc - int_a) / (int_b - int_a);
 }

@@ -68,6 +68,9 @@ void Chassis_Init(Chassis *ch, M3508_CAN_All *m3508, EncoderOdo *eo, Macnum *mn,
     PID_Init(&ch->pid_x, cfg->pos_kp, cfg->pos_ki, cfg->pos_kd, cfg->chassis_dt);
     PID_Init(&ch->pid_y, cfg->pos_kp, cfg->pos_ki, cfg->pos_kd, cfg->chassis_dt);
     PID_Init(&ch->pid_yaw, cfg->yaw_kp, cfg->yaw_ki, cfg->yaw_kd, cfg->chassis_dt);
+    PID_SetIntLim(&ch->pid_x, 0.5);
+    PID_SetIntLim(&ch->pid_y, 0.5);
+    PID_SetIntLim(&ch->pid_yaw, 0.3);
 }
 
 /* 直接设置当前全局位姿，用于外部给定起点坐标 */
@@ -245,8 +248,6 @@ void Chassis_Update(Chassis *ch)
             double sin_yaw = sin(ch->yis->yaw);
             vx_cmd = vx_world * cos_yaw + vy_world * sin_yaw;
             vy_cmd = -vx_world * sin_yaw + vy_world * cos_yaw;
-            // vx_cmd = vx_world + vy_world;
-            // vy_cmd = -vx_world + vy_world;
             omega_cmd = omega;
             break;
         }

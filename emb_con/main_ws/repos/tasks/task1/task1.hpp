@@ -29,18 +29,18 @@ public:
         ));
 
         // 暂时占位
-        Add_Subtask(std::make_shared<MechaArmGetTask>(2000)); 
+        // Add_Subtask(std::make_shared<MechaArmGetTask>(2000)); 
 
-        Add_Subtask(std::make_shared<CubeBezierMoveTask>(
-            chassis,
-            _2D_Point{1.0, 0.6},   // p1 相对偏移，待调整
-            _2D_Point{2.0, 1.2},   // p2 相对偏移，待调整
-            _2D_Point{-3.0, 1.8},   // p2 相对终点，待调整
-            // 0.0,                   // v0
-            0.0,                   // vf
-            4.0,                    // duration
-            0.02                    // max_err
-        ));
+        // Add_Subtask(std::make_shared<CubeBezierMoveTask>(
+        //     chassis,
+        //     _2D_Point{1.0, 0.6},   // p1 相对偏移，待调整
+        //     _2D_Point{2.0, 1.2},   // p2 相对偏移，待调整
+        //     _2D_Point{-3.0, 1.8},   // p2 相对终点，待调整
+        //     // 0.0,                   // v0
+        //     0.0,                   // vf
+        //     4.0,                    // duration
+        //     0.02                    // max_err
+        // ));
 
         // Add_Subtask(std::make_shared<SquareBezierMoveTask>(
         //     chassis,
