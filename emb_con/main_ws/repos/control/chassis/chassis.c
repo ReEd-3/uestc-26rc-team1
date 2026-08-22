@@ -161,6 +161,21 @@ void Chassis_MoveAbsolute(Chassis *ch, double x, double y, double yaw)
     Chassis_ResetPid(ch);
 }
 
+/* 轨迹跟踪用：只更新绝对位置目标，不重置PID，避免每周期积分清零 */
+void Chassis_FollowTarget(Chassis *ch, double x, double y, double yaw)
+{
+    if (ch == NULL) {
+        return;
+    }
+
+    ch->target_x = x;
+    ch->target_y = y;
+    ch->target_yaw = Chassis_AngleNormalize(yaw);
+
+    ch->mode = CHASSIS_MODE_ABSOLUTE_MOVE;
+    /* 注意：不调用 Chassis_ResetPid() */
+}
+
 /* 停止底盘运动并清空目标速度 */
 void Chassis_Stop(Chassis *ch)
 {

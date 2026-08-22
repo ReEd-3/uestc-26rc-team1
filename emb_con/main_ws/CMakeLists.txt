@@ -39,6 +39,7 @@ add_subdirectory(cmake/stm32cubemx)
 add_subdirectory(repos/basic_dependencies ${CMAKE_BINARY_DIR}/basic_dependencies)
 add_subdirectory(repos/basic_protocol ${CMAKE_BINARY_DIR}/basic_protocol)
 add_subdirectory(repos/algorithm/macnum ${CMAKE_BINARY_DIR}/macnum)
+add_subdirectory(repos/algorithm/trajectory ${CMAKE_BINARY_DIR}/trajectory)
 add_subdirectory(repos/devices/m3508 ${CMAKE_BINARY_DIR}/m3508)
 add_subdirectory(repos/devices/encoder_odo ${CMAKE_BINARY_DIR}/encoder_odo)
 add_subdirectory(repos/HC_interact ${CMAKE_BINARY_DIR}/hc_interact)
@@ -76,6 +77,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     # Add user defined libraries
     m3508
     macnum
+    trajectory
     chassis
     encoder_odo
     hc_interact

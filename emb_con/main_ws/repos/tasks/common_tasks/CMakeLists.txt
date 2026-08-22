@@ -8,4 +8,5 @@ target_link_libraries(common_tasks INTERFACE
     stm32cubemx
     chassis
     basic_dependencies
+    trajectory
 )
