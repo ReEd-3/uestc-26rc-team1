@@ -49,7 +49,6 @@ void Motor_AppInit(void) {
 
     target_rpm[0] = 0; // 位置目标初始 0，首拍会吸附到当前位置
     M3508_SetPositionTarget(&m3508_can_1, target_rpm);// 写入位置环目标
-    //M3508_PIDMode_Switch(&m3508_can_1.motors[0], M3508_CASCADE_MODE);// 串级模式：位置外环→速度内环
     /* 速度目标限幅（原始RPM）：驱动层已做 ×19.2 换算，此限幅为原始RPM；
        350≈18 输出RPM 太慢，3000≈156 输出RPM 适合观察 */
     m3508_can_1.motors[0].max_speed = 10000;
