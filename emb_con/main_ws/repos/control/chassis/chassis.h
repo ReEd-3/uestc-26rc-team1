@@ -43,6 +43,7 @@ void Chassis_ResetPose(Chassis *ch, const uint16_t encoder_now[4]);
 void Chassis_SetVelocity(Chassis *ch, double vx, double vy, double omega);
 void Chassis_MoveRelative(Chassis *ch, double dx, double dy, double dyaw);
 void Chassis_MoveAbsolute(Chassis *ch, double x, double y, double yaw);
+void Chassis_FollowTarget(Chassis *ch, double x, double y, double yaw);  // 不重置PID，用于轨迹跟踪
 void Chassis_Stop(Chassis *ch);
 void Chassis_Update(Chassis *ch);
 uint8_t Chassis_Arrived(Chassis *ch);
